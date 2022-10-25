@@ -1,0 +1,132 @@
+---
+title: "Stat235 Final Project"
+author: "Nils Dahlin, Connor Guyette"
+date: "10/20/2022"
+output: html_document
+---
+# Final Project Proposal
+Nils Dahlin and Connor Guyette
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+pacman::p_load(socviz, tidyverse, rstatix, DescTools, gtExtras, rcompanion, sjPlot)
+
+#ufc_fulldata <- read.csv("data.csv")
+#disaster_data <- read.csv("us_disaster_declarations.csv")
+
+drug_data <- read.csv("Drug_Consumption.csv")
+```
+
+## Introduction
+We are interested in looking at the associations between age/gender/and education and drug usage 
+but this data set was also interesting because it measures personality traits such as extroversion, agreeableness, impulsiveness, conscientiousness, and more. We think it would be really interesting to explore the associations between these traits and the use of different drugs and the number of different drugs used
+
+## Data Description
+This dataset is a collection of 1884 data points that track different attributes/features of individuals
+including age/gender/education level/country/ethnicity/personality trait scores/ and drugs used and when. 
+
+Here is a quick look at the first 5 entries of our dataset.
+
+```{r quick view}
+head(drug_data,5)
+```
+
+These are the descriptions for the more nondescript features: 
+
+Personality Traits:
+NSScore - Neuroticism
+EScore - Extraversion
+OScore - Openness to Experience
+AScore - Agreeableness
+CScore - Conscientiousness
+Impulsiveness
+SS - Sensation Seeing
+
+Drug Use Classifications:
+CL0 - Never used
+CL1 - Used over a decade ago
+CL2 - Used in last decade
+CL3 - Used in last year
+CL4 - Used in last month
+CL5 - Used in last week
+CL6 - Used in last day
+
+```{r feature summary}
+shortened_df <- select(drug_data,-ID,-Semer,-VSA)
+sjPlot::view_df(shortened_df,
+ show.frq = T,
+ show.prc = T,
+ show.na = T,
+ show.string.values = T)
+```
+
+
+## Data Summary
+We are interested in initially looking at the association between age and certain types of drug use as well as personality traits and drug use. From there we are interested at looking at the associations between these controlling for education level. These are some of our inital data summaries:
+
+### Alcohol Usage vs. Age
+```{r pressure, echo=FALSE}
+ggplot(data = drug_data,
+       mapping = aes(Alcohol, ..count..)) +
+  geom_bar(aes(fill = Age),
+           position = "dodge")
+```
+
+### Nicotine Usage vs. Age
+```{r pressure, echo=FALSE}
+ggplot(data = drug_data,
+       mapping = aes(Nicotine, ..count..)) +
+  geom_bar(aes(fill = Age),
+           position = "dodge")
+```
+
+### Caffeine Usage vs. Age
+```{r pressure, echo=FALSE}
+ggplot(data = drug_data,
+       mapping = aes(Caff, ..count..)) +
+  geom_bar(aes(fill = Age),
+           position = "dodge")
+```
+
+### Cannabis Usage vs. Age
+```{r pressure, echo=FALSE}
+ggplot(data = drug_data,
+       mapping = aes(Cannabis, ..count..)) +
+  geom_bar(aes(fill = Age),
+           position = "dodge")
+```
+
+### Mushroom/Psylocibin Usage vs. Age
+```{r pressure, echo=FALSE}
+ggplot(data = drug_data,
+       mapping = aes(Mushrooms, ..count..)) +
+  geom_bar(aes(fill = Age),
+           position = "dodge")
+```
+
+### Heroin Usage vs. Age
+```{r pressure, echo=FALSE}
+ggplot(data = drug_data,
+       mapping = aes(Heroin, ..count..)) +
+  geom_bar(aes(fill = Age),
+           position = "dodge")
+```
+
+### Cocaine Usage vs. Age
+```{r pressure, echo=FALSE}
+ggplot(data = drug_data,
+       mapping = aes(Coke, ..count..)) +
+  geom_bar(aes(fill = Age),
+           position = "dodge")
+```
+
+#### Extraversion Score vs Drug Use
+```{r}
+ggplot(data = drug_data,
+       mapping = aes(x=Escore,
+                     y=Alcohol,
+                     color=Age)) +
+  geom_point()
+```
+
