@@ -66,6 +66,7 @@ sjPlot::view_df(shortened_df,
 We are interested in initially looking at the association between age and certain types of drug use as well as personality traits and drug use. From there we are interested at looking at the associations between these controlling for education level. These are some of our inital data summaries:
 
 ### Alcohol Usage vs. Age
+This graph shows a barchart of the number of samples for alcohol usage across the 7 classifications further divided by age groups. 
 ```{r pressure, echo=FALSE}
 ggplot(data = drug_data,
        mapping = aes(Alcohol, ..count..)) +
