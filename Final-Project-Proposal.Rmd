@@ -2,7 +2,9 @@
 title: "Stat235 Final Project"
 author: "Nils Dahlin, Connor Guyette"
 date: "10/20/2022"
-output: html_document
+output:
+  word_document: default
+  html_document: default
 ---
 # Final Project Proposal
 Nils Dahlin and Connor Guyette
