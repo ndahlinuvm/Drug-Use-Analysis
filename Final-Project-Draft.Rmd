@@ -1,6 +1,6 @@
 ---
 title: "Stat235 Final Project"
-author: "Nils Dahlin, Connor Guyette, Jon"
+author: "Nils Dahlin, Connor Guyette, Jon Kramer"
 date: "10/20/2022"
 output:
   html_document: default
@@ -8,7 +8,7 @@ output:
   pdf_document: default
 ---
 # Final Project Proposal
-Nils Dahlin, Connor Guyette, and John 
+Nils Dahlin, Connor Guyette, and Jon Kramer
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
