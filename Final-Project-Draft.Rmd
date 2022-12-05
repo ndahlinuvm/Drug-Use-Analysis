@@ -1,6 +1,6 @@
 ---
 title: "Stat235 Final Project"
-author: "Nils Dahlin, Connor Guyette"
+author: "Nils Dahlin, Connor Guyette, Jon Kramer"
 date: "10/20/2022"
 output:
   html_document: default
