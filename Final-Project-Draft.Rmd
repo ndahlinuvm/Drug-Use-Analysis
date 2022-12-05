@@ -1,0 +1,775 @@
+---
+title: "Stat235 Final Project"
+author: "Nils Dahlin, Connor Guyette"
+date: "10/20/2022"
+output:
+  html_document: default
+  word_document: default
+  pdf_document: default
+---
+# Final Project Proposal
+Nils Dahlin, Connor Guyette, and John 
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+pacman::p_load(socviz, tidyverse, rstatix, DescTools, gtExtras, rcompanion, sjPlot)
+#tinytex::install_tinytex()
+
+#ufc_fulldata <- read.csv("data.csv")
+#disaster_data <- read.csv("us_disaster_declarations.csv")
+
+drug_data <- read.csv("Drug_Consumption.csv")
+```
+
+## Introduction
+We are interested in looking at the associations between age/gender/and education and drug usage 
+but the data set was also interesting because it measures personality traits such as extroversion, agreeableness, impulsiveness, conscientiousness, and more. We think it would be really interesting to explore the associations between these traits and the use of different drugs and the number of different drugs used
+
+## Data Description
+This data set is a collection of 1884 data points that track different attributes/features of individuals
+including age/gender/education level/country/ethnicity/personality trait scores/ and drugs used and when. 
+
+Here is a quick look at the first 5 entries of our data set.
+
+```{r quick view}
+head(drug_data,5)
+```
+
+These are the descriptions for the more nondescript features: 
+
+Personality Traits:<br/>
+NSScore - Neuroticism<br/>
+EScore - Extraversion<br/>
+OScore - Openness to Experience<br/>
+AScore - Agreeableness<br/>
+CScore - Conscientiousness<br/>
+Impulsiveness<br/>
+SS - Sensation Seeing<br/>
+-The dataset we pulled had altered the personality trait scores for analysis. We believe they have been normalized for analysis and from researching the dataset it looks like the original scale was 0-12 or 1-12 so during later analysis and testing we will have to decide if we want to revert to the discrete scale or keep the values as normalized scores 
+
+Drug Use Classifications:
+CL0 - Never used<br/>
+CL1 - Used over a decade ago<br/>
+CL2 - Used in last decade<br/>
+CL3 - Used in last year<br/>
+CL4 - Used in last month<br/>
+CL5 - Used in last week<br/>
+CL6 - Used in last day<br/>
+
+```{r removing features}
+# removing features we will not be using
+main_df <- select(drug_data,-ID,-Semer,-VSA,-Amyl,-Benzos,-Choc,-Ecstasy,-Legalh)
+sjPlot::view_df(main_df,
+ show.frq = T,
+ show.prc = T,
+ show.na = T,
+ show.string.values = T)
+```
+
+```{r reclassify drug use and education and reorganize}
+#Alcohol
+main_df$Alcohol[main_df$Alcohol=='CL0'] <- 'Never'
+main_df$Alcohol[main_df$Alcohol=='CL1'] <- 'Over a Decade'
+main_df$Alcohol[main_df$Alcohol=='CL2'] <- 'Last Decade'
+main_df$Alcohol[main_df$Alcohol=='CL3'] <- 'Last Year'
+main_df$Alcohol[main_df$Alcohol=='CL4'] <- 'Last Month'
+main_df$Alcohol[main_df$Alcohol=='CL5'] <- 'Last Week'
+main_df$Alcohol[main_df$Alcohol=='CL6'] <- 'Last Day'
+
+#Amphetamines
+main_df$Amphet[main_df$Amphet=='CL0'] <- 'Never'
+main_df$Amphet[main_df$Amphet=='CL1'] <- 'Over a Decade'
+main_df$Amphet[main_df$Amphet=='CL2'] <- 'Last Decade'
+main_df$Amphet[main_df$Amphet=='CL3'] <- 'Last Year'
+main_df$Amphet[main_df$Amphet=='CL4'] <- 'Last Month'
+main_df$Amphet[main_df$Amphet=='CL5'] <- 'Last Week'
+main_df$Amphet[main_df$Amphet=='CL6'] <- 'Last Day'
+
+#Caffeine
+main_df$Caff[main_df$Caff=='CL0'] <- 'Never'
+main_df$Caff[main_df$Caff=='CL1'] <- 'Over a Decade'
+main_df$Caff[main_df$Caff=='CL2'] <- 'Last Decade'
+main_df$Caff[main_df$Caff=='CL3'] <- 'Last Year'
+main_df$Caff[main_df$Caff=='CL4'] <- 'Last Month'
+main_df$Caff[main_df$Caff=='CL5'] <- 'Last Week'
+main_df$Caff[main_df$Caff=='CL6'] <- 'Last Day'
+
+#Cannabis
+main_df$Cannabis[main_df$Cannabis=='CL0'] <- 'Never'
+main_df$Cannabis[main_df$Cannabis=='CL1'] <- 'Over a Decade'
+main_df$Cannabis[main_df$Cannabis=='CL2'] <- 'Last Decade'
+main_df$Cannabis[main_df$Cannabis=='CL3'] <- 'Last Year'
+main_df$Cannabis[main_df$Cannabis=='CL4'] <- 'Last Month'
+main_df$Cannabis[main_df$Cannabis=='CL5'] <- 'Last Week'
+main_df$Cannabis[main_df$Cannabis=='CL6'] <- 'Last Day'
+
+#Cocaine
+main_df$Coke[main_df$Coke=='CL0'] <- 'Never'
+main_df$Coke[main_df$Coke=='CL1'] <- 'Over a Decade'
+main_df$Coke[main_df$Coke=='CL2'] <- 'Last Decade'
+main_df$Coke[main_df$Coke=='CL3'] <- 'Last Year'
+main_df$Coke[main_df$Coke=='CL4'] <- 'Last Month'
+main_df$Coke[main_df$Coke=='CL5'] <- 'Last Week'
+main_df$Coke[main_df$Coke=='CL6'] <- 'Last Day'
+
+#Crack
+main_df$Crack[main_df$Crack=='CL0'] <- 'Never'
+main_df$Crack[main_df$Crack=='CL1'] <- 'Over a Decade'
+main_df$Crack[main_df$Crack=='CL2'] <- 'Last Decade'
+main_df$Crack[main_df$Crack=='CL3'] <- 'Last Year'
+main_df$Crack[main_df$Crack=='CL4'] <- 'Last Month'
+main_df$Crack[main_df$Crack=='CL5'] <- 'Last Week'
+main_df$Crack[main_df$Crack=='CL6'] <- 'Last Day'
+
+#Heroin
+main_df$Heroin[main_df$Heroin=='CL0'] <- 'Never'
+main_df$Heroin[main_df$Heroin=='CL1'] <- 'Over a Decade'
+main_df$Heroin[main_df$Heroin=='CL2'] <- 'Last Decade'
+main_df$Heroin[main_df$Heroin=='CL3'] <- 'Last Year'
+main_df$Heroin[main_df$Heroin=='CL4'] <- 'Last Month'
+main_df$Heroin[main_df$Heroin=='CL5'] <- 'Last Week'
+main_df$Heroin[main_df$Heroin=='CL6'] <- 'Last Day'
+
+#Ketamine
+main_df$Ketamine[main_df$Ketamine=='CL0'] <- 'Never'
+main_df$Ketamine[main_df$Ketamine=='CL1'] <- 'Over a Decade'
+main_df$Ketamine[main_df$Ketamine=='CL2'] <- 'Last Decade'
+main_df$Ketamine[main_df$Ketamine=='CL3'] <- 'Last Year'
+main_df$Ketamine[main_df$Ketamine=='CL4'] <- 'Last Month'
+main_df$Ketamine[main_df$Ketamine=='CL5'] <- 'Last Week'
+main_df$Ketamine[main_df$Ketamine=='CL6'] <- 'Last Day'
+
+#LSD
+main_df$LSD[main_df$LSD=='CL0'] <- 'Never'
+main_df$LSD[main_df$LSD=='CL1'] <- 'Over a Decade'
+main_df$LSD[main_df$LSD=='CL2'] <- 'Last Decade'
+main_df$LSD[main_df$LSD=='CL3'] <- 'Last Year'
+main_df$LSD[main_df$LSD=='CL4'] <- 'Last Month'
+main_df$LSD[main_df$LSD=='CL5'] <- 'Last Week'
+main_df$LSD[main_df$LSD=='CL6'] <- 'Last Day'
+
+#Methamphetamines
+main_df$Meth[main_df$Meth=='CL0'] <- 'Never'
+main_df$Meth[main_df$Meth=='CL1'] <- 'Over a Decade'
+main_df$Meth[main_df$Meth=='CL2'] <- 'Last Decade'
+main_df$Meth[main_df$Meth=='CL3'] <- 'Last Year'
+main_df$Meth[main_df$Meth=='CL4'] <- 'Last Month'
+main_df$Meth[main_df$Meth=='CL5'] <- 'Last Week'
+main_df$Meth[main_df$Meth=='CL6'] <- 'Last Day'
+
+#Psylocibin
+main_df$Mushrooms[main_df$Mushrooms=='CL0'] <- 'Never'
+main_df$Mushrooms[main_df$Mushrooms=='CL1'] <- 'Over a Decade'
+main_df$Mushrooms[main_df$Mushrooms=='CL2'] <- 'Last Decade'
+main_df$Mushrooms[main_df$Mushrooms=='CL3'] <- 'Last Year'
+main_df$Mushrooms[main_df$Mushrooms=='CL4'] <- 'Last Month'
+main_df$Mushrooms[main_df$Mushrooms=='CL5'] <- 'Last Week'
+main_df$Mushrooms[main_df$Mushrooms=='CL6'] <- 'Last Day'
+
+#Nicotine
+main_df$Nicotine[main_df$Nicotine=='CL0'] <- 'Never'
+main_df$Nicotine[main_df$Nicotine=='CL1'] <- 'Over a Decade'
+main_df$Nicotine[main_df$Nicotine=='CL2'] <- 'Last Decade'
+main_df$Nicotine[main_df$Nicotine=='CL3'] <- 'Last Year'
+main_df$Nicotine[main_df$Nicotine=='CL4'] <- 'Last Month'
+main_df$Nicotine[main_df$Nicotine=='CL5'] <- 'Last Week'
+main_df$Nicotine[main_df$Nicotine=='CL6'] <- 'Last Day'
+
+#Education
+main_df$Education[main_df$Education=='Left school before 16 years'] <- 'No College/University'
+main_df$Education[main_df$Education=='Left school at 16 years'] <- 'No College/University'
+main_df$Education[main_df$Education=='Left school at 17 years'] <- 'No College/University'
+main_df$Education[main_df$Education=='Left school at 18 years'] <- 'No College/University'
+main_df$Education[main_df$Education=='Some college or university, no certificate or degree'] <- 'Some College/University'
+
+#Reordering the features
+main_df <- 
+  main_df |> 
+  mutate(Alcohol = factor(Alcohol,
+                              levels = c("Last Day", "Last Week", "Last Month", "Last Year", "Last Decade", "Over a Decade", "Never")),
+         
+         Amphet = factor(Amphet,
+                              levels = c("Last Day", "Last Week", "Last Month", "Last Year", "Last Decade", "Over a Decade", "Never")),
+                
+        Caff = factor(Caff,
+                              levels = c("Last Day", "Last Week", "Last Month", "Last Year", "Last Decade", "Over a Decade", "Never")),
+        
+        Cannabis = factor(Cannabis,
+                              levels = c("Last Day", "Last Week", "Last Month", "Last Year", "Last Decade", "Over a Decade", "Never")),
+
+        Coke = factor(Coke,
+                              levels = c("Last Day", "Last Week", "Last Month", "Last Year", "Last Decade", "Over a Decade", "Never")),
+
+        Crack = factor(Crack,
+                              levels = c("Last Day", "Last Week", "Last Month", "Last Year", "Last Decade", "Over a Decade", "Never")),
+        Heroin = factor(Heroin,
+                              levels = c("Last Day", "Last Week", "Last Month", "Last Year", "Last Decade", "Over a Decade", "Never")),
+        Ketamine = factor(Ketamine,
+                              levels = c("Last Day", "Last Week", "Last Month", "Last Year", "Last Decade", "Over a Decade", "Never")),
+        LSD = factor(LSD,
+                              levels = c("Last Day", "Last Week", "Last Month", "Last Year", "Last Decade", "Over a Decade", "Never")),
+        Meth = factor(Meth,
+                              levels = c("Last Day", "Last Week", "Last Month", "Last Year", "Last Decade", "Over a Decade", "Never")),
+        Mushrooms = factor(Mushrooms,
+                              levels = c("Last Day", "Last Week", "Last Month", "Last Year", "Last Decade", "Over a Decade", "Never")),
+        Nicotine = factor(Nicotine,
+                              levels = c("Last Day", "Last Week", "Last Month", "Last Year", "Last Decade", "Over a Decade", "Never")),
+        Education = factor(Education,
+                              levels = c("No College/University", "Some College/University", "Professional certificate/ diploma", "University degree", "Masters degree", "Doctorate degree")))
+
+
+
+head(main_df)
+```
+
+
+## Data Summary
+We are interested in initially looking at the association between age and certain types of drug use as well as personality traits and drug use. From there we are interested at looking at the associations between these controlling for education level. These are some of our inital data summaries:
+
+### Distribution of Ages
+```{r}
+#plot counts
+# ggplot(main_df, aes(x=factor(Age)))+
+#   geom_bar(width=0.7, fill="steelblue")+
+#   theme_minimal()+
+#   xlab("Age") + ylab("Count")
+
+
+#plot props
+age_prop <- main_df |>
+  group_by(Age) |>
+  count(Age) |>
+  ungroup() |>
+  mutate(prop = n/sum(n))
+
+ggplot(age_prop, aes(x=Age, y=prop))+
+  geom_bar(stat="identity", width=0.7, fill="steelblue")+
+  theme_minimal()+
+  xlab("Age") + ylab("Proportion")
+  
+```
+<br/>The distribution of ages is heavily skewed right with the majority of the data consisting of those younger than 45. The amount of data in the youngest bracket is the largest with the amount tailing off as age brackets increase.
+
+### Usage by Age
+
+```{r heavier drug use by age, echo=FALSE}
+#Heroin
+heroin_age_prop <- main_df |>
+  group_by(Age) |>
+  group_by(Heroin) |>
+  count(Heroin) |>
+  ungroup() |>
+  mutate(prop = n/sum(n))
+ggplot(data = main_df,
+       mapping = aes(Age, ..count..)) +
+  geom_bar(aes(fill = Heroin),
+           position = "dodge")
+
+#Methamphetamines
+ggplot(data = main_df,
+       mapping = aes(Age, ..count..)) +
+  geom_bar(aes(fill = Meth),
+           position = "dodge")
+
+```
+<br/>From an initial analysis it looks like across the board it is generally younger people trying and actively using different drugs with smaller amounts but larger proportions of middle aged people reporting different use consistently more around past usage when they were younger. From here we will examine the associations further and later include education into our analysis.
+
+### Usage by Education
+```{r drugs by education}
+# Heroin
+ggplot(data = main_df,
+       mapping = aes(Education, ..count..)) +
+  geom_bar(aes(fill = Heroin),
+           position = "dodge")
+
+# Meth
+ggplot(data = main_df,
+       mapping = aes(Education, ..count..)) +
+  geom_bar(aes(fill = Meth),
+           position = "dodge")
+
+```
+
+### Examining Heroin and Meth Use by Education
+```{r Heroin by Age}
+# By Age
+heroin_used_df <- main_df |>
+  select(Age,Education,Country,Nscore,Escore,Impulsive,Heroin)
+
+heroin_used_df$Heroin = ifelse(heroin_used_df$Heroin=='Never','Never Used','Has Used')
+
+ggplot(data = heroin_used_df,
+       mapping = aes(Heroin, ..count..)) +
+  geom_bar(aes(fill = Age),
+           position = "dodge")
+
+heroin_age_freq <-
+  xtabs(formula = ~ Age + Heroin,
+        data = heroin_used_df) 
+heroin_age_freq |> 
+  # Convert counts to conditional proportions
+  prop.table(margin = "Age") |> 
+  # Display 3 significant digits
+  signif(digits = 3) |> 
+  # Convert to a data frame
+  data.frame() |> 
+  # Changing drive_end from 1 column to a column per way the drive ends
+  pivot_wider(names_from = "Heroin",
+              values_from = "Freq")
+
+chisq_test(x=heroin_age_freq)
+cramerV(heroin_age_freq,
+        ci = T,
+        conf = 0.95)
+```
+```{r Heroin by Education}
+ggplot(data = heroin_used_df,
+       mapping = aes(Heroin, ..count..)) +
+  geom_bar(aes(fill = Education),
+           position = "dodge")
+
+heroin_edu_freq <-
+  xtabs(formula = ~ Education + Heroin,
+        data = heroin_used_df) 
+heroin_edu_freq |> 
+  # Convert counts to conditional proportions
+  prop.table(margin = "Education") |> 
+  # Display 3 significant digits
+  signif(digits = 3) |> 
+  # Convert to a data frame
+  data.frame() |> 
+  # Changing drive_end from 1 column to a column per way the drive ends
+  pivot_wider(names_from = "Heroin",
+              values_from = "Freq")
+
+chisq_test(x=heroin_edu_freq)
+cramerV(heroin_edu_freq,
+        ci = T,
+        conf = 0.95)
+```
+
+```{r Meth by Age}
+meth_used_df <- main_df |>
+  select(Age,Education,Country,Nscore,Escore,Impulsive,Meth)
+
+meth_used_df$Meth = ifelse(meth_used_df$Meth=='Never','Never Used','Has Used')
+
+ggplot(data = meth_used_df,
+       mapping = aes(Meth, ..count..)) +
+  geom_bar(aes(fill = Age),
+           position = "dodge")
+
+meth_age_freq <-
+  xtabs(formula = ~ Age + Meth,
+        data = meth_used_df) 
+meth_age_freq |> 
+  # Convert counts to conditional proportions
+  prop.table(margin = "Age") |> 
+  # Display 3 significant digits
+  signif(digits = 3) |> 
+  # Convert to a data frame
+  data.frame() |> 
+  # Changing drive_end from 1 column to a column per way the drive ends
+  pivot_wider(names_from = "Meth",
+              values_from = "Freq")
+
+chisq_test(x=meth_age_freq)
+cramerV(meth_age_freq,
+        ci = T,
+        conf = 0.95)
+```
+```{r Meth by Education}
+ggplot(data = meth_used_df,
+       mapping = aes(Meth, ..count..)) +
+  geom_bar(aes(fill = Education),
+           position = "dodge")
+
+meth_edu_freq <-
+  xtabs(formula = ~ Education + Meth,
+        data = meth_used_df)
+meth_edu_freq |> 
+  # Convert counts to conditional proportions
+  prop.table(margin = "Education") |> 
+  # Display 3 significant digits
+  signif(digits = 3) |> 
+  # Convert to a data frame
+  data.frame() |> 
+  # Changing drive_end from 1 column to a column per way the drive ends
+  pivot_wider(names_from = "Meth",
+              values_from = "Freq")
+
+chisq_test(x=meth_edu_freq)
+cramerV(meth_edu_freq,
+        ci = T,
+        conf = 0.95)
+```
+
+### Tests for Heroin and Meth Use by Age and Education
+#### Heroin
+```{r Heroin Complete Independence}
+#Getting Counts and Expected Proportions
+heroin_sum <- 
+  heroin_used_df |> 
+  count(Age, Education, Heroin) |> 
+  # Calculating the proportions: n/sum(n)
+  mutate(FA_prop = n/sum(n))
+heroin_sum
+
+I <- n_distinct(heroin_used_df$Education)
+J <- n_distinct(heroin_used_df$Heroin)
+K <- n_distinct(heroin_used_df$Age)
+
+heroin_CI <- 
+  heroin_sum |> 
+  group_by(Age) |> 
+  mutate(age_n = sum(n)) |> 
+  ungroup() |> 
+  
+  group_by(Education) |> 
+  mutate(edu_n = sum(n)) |> 
+  ungroup() |> 
+  
+  group_by(Heroin) |> 
+  mutate(heroin_n = sum(n)) |> 
+  ungroup() |> 
+  
+  # Now we can calculate the expected proportion for each outcome assuming complete independence
+  mutate(CI_prop = age_n/sum(n) * edu_n/sum(n) * heroin_n/sum(n)) |> 
+  
+  # Dropping the count columns because we don't need them in the future:
+  select(-age_n, -edu_n, -heroin_n)
+
+heroin_CI
+
+#Getting Test Statistics:
+CI_FA_test <- 
+  heroin_CI |> 
+  # Calculating the individual pieces of our test statistics (chi^2 and G)
+  mutate(zi2 = (FA_prop - CI_prop)^2/CI_prop,
+         gi = n*log(FA_prop/CI_prop)) |> 
+  
+  # Adding the individual pieces to get the test statistic:
+  summarize(chi2 = sum(n)*sum(zi2),
+            lrt_g = 2*sum(gi)) |> 
+  
+  # Changing the results from being stored in separate columns to the same column
+  pivot_longer(cols = chi2:lrt_g,
+               names_to = "test",
+               values_to = "stat")
+
+CI_FA_test
+
+# Calculating P-Values:
+# The number of unique proportions needed for the FA model
+r1 <- I*J*K - 1
+
+# The number of unique proportions needed for the CI model
+r0 <- I + J + K - 3
+
+# The degrees of freedom: r1 - r0
+df_CI <- r1 - r0
+df_CI
+
+CI_FA_test |> 
+  mutate(p_val = pchisq(stat, df = df_CI, lower = F))
+
+#Checking Sample Size:
+heroin_CI |> 
+  mutate(n_CI = sum(n)*CI_prop) |> 
+  arrange(n_CI)
+
+#Finding Where Differences Occur:
+heroin_CI |>
+  
+  # Calculating the Standardized z-score for each of the 16 groups:
+  mutate(zi = (FA_prop - CI_prop)/sqrt(CI_prop * (1-CI_prop)/sum(n))) |> 
+  
+  # Creating the heat map using ggplot and geom_tile()
+  ggplot(mapping = aes(x = Heroin,
+                       y = Education,
+                       fill = zi)) + 
+  
+  geom_tile(color = "white") + 
+  
+  geom_text(mapping = aes(label = round(zi, digits = 2))) +
+  
+  facet_wrap(facets = ~ Age) + 
+  
+  # Removes the buffer around the plot
+  coord_cartesian(expand = F) + 
+  
+  scale_fill_gradient2(low = "red",
+                       mid = "white",
+                       high = "green",
+                       midpoint = 0) + 
+  
+  labs(x = "Used Heroin or Not",
+       y = "Education",
+       fill = "z-score for \nFA vs CI models")
+```
+
+```{r Heroin Joint Independence}
+heroin_JI <- 
+  heroin_used_df |> 
+  mutate(edu_use = interaction(Education, Heroin, sep = ":"))
+
+heroin_JI |> 
+  head(n = 10)
+
+JI_vs_FA <- 
+  chisq_test(x = heroin_JI$edu_use,
+             y = heroin_JI$Age)
+
+JI_vs_FA
+
+#Checking Expected Counts:
+expected_freq(JI_vs_FA) |> 
+  round(digits = 1)
+
+#Finding Where Differences Occur:
+std_residuals(JI_vs_FA) |> 
+  data.frame() |> 
+  
+  rename(std_res = Freq,
+         Age = y) |> 
+  
+  # Separate will split apart the two variables that we combined together
+  separate(col = x,                               # Column to split
+           into = c("Education", "Heroin"),  # name of the new columns
+           sep = ":") |>                          # Where to split the column
+  
+  # Creating the heat map using ggplot and geom_tile()
+  ggplot(mapping = aes(x = Heroin,
+                       y = Education,
+                       fill = std_res)) + 
+  
+  geom_tile(color = "white") + 
+  
+  geom_text(mapping = aes(label = round(std_res, digits = 2))) +
+  
+  facet_wrap(facets = ~ Age) + 
+  
+  # Removes the buffer around the plot
+  coord_cartesian(expand = F) + 
+  
+  scale_fill_gradient2(low = "red",
+                       mid = "white",
+                       high = "green",
+                       midpoint = 0) + 
+  
+  labs(x = "Used Heroin or Not",
+       y = "Education",
+       fill = "z-score for \nFA vs JI models")
+```
+
+```{r Heroin Conditional Independence}
+xtabs(formula = ~ Age + Heroin + Education,
+      data = heroin_used_df)
+
+xtabs(formula = ~ Education + Age + Heroin,
+      data = heroin_used_df) |> 
+  ftable()
+
+#partial tests
+partial_chisq_tests <- 
+  heroin_used_df |>
+  # Group by the control variable, Z
+  
+  group_by(Education) |> 
+  
+  # Calculating the test statistic, df, and p-value for each individual partial table
+  summarize(test_stat = chisq_test(Age, Heroin)$statistic,
+            df = chisq_test(Age, Heroin)$df,
+            p_val = chisq_test(Age, Heroin)$p)
+
+partial_chisq_tests 
+
+cond_ind_test <- partial_chisq_tests$test_stat |> sum()
+cond_ind_test
+
+# P-value:
+pchisq(q = cond_ind_test,
+       df = 6,
+       lower = F)
+
+# G Test
+library(DescTools)
+partial_G_tests <- 
+  heroin_used_df |>
+  # Group by the control variable, Z
+  
+  group_by(Education) |> 
+  
+  # Calculating the test statistic, df, and p-value for each individual partial table
+  summarize(test_stat = GTest(Age, Heroin)$statistic,
+            df = GTest(Age, Heroin)$parameter,
+            p_val = GTest(Age, Heroin)$p.value)
+
+partial_G_tests 
+
+# test stat and p-value
+c(G = sum(partial_G_tests$test_stat),
+  p_val = pchisq(q = sum(partial_G_tests$test_stat),
+                 df = 6,
+                 lower = F))
+```
+
+
+#### Meth
+```{r Meth Complete Independence}
+#Getting Counts and Expected Values:
+meth_sum <- 
+  meth_used_df |> 
+  count(Age, Education, Meth) |> 
+  # Calculating the proportions: n/sum(n)
+  mutate(FA_prop = n/sum(n))
+meth_sum
+
+I <- n_distinct(meth_used_df$Education)
+J <- n_distinct(meth_used_df$Meth)
+K <- n_distinct(meth_used_df$Age)
+
+meth_CI <- 
+  meth_sum |> 
+  group_by(Age) |> 
+  mutate(age_n = sum(n)) |> 
+  ungroup() |> 
+  
+  group_by(Education) |> 
+  mutate(edu_n = sum(n)) |> 
+  ungroup() |> 
+  
+  group_by(Meth) |> 
+  mutate(meth_n = sum(n)) |> 
+  ungroup() |> 
+  
+  # Now we can calculate the expected proportion for each outcome assuming complete independence
+  mutate(CI_prop = age_n/sum(n) * edu_n/sum(n) * meth_n/sum(n)) |> 
+  
+  # Dropping the count columns because we don't need them in the future:
+  select(-age_n, -edu_n, -meth_n)
+
+meth_CI
+
+#Getting Test Statistics:
+CI_FA_test <- 
+  meth_CI |> 
+  # Calculating the individual pieces of our test statistics (chi^2 and G)
+  mutate(zi2 = (FA_prop - CI_prop)^2/CI_prop,
+         gi = n*log(FA_prop/CI_prop)) |> 
+  
+  # Adding the individual pieces to get the test statistic:
+  summarize(chi2 = sum(n)*sum(zi2),
+            lrt_g = 2*sum(gi)) |> 
+  
+  # Changing the results from being stored in separate columns to the same column
+  pivot_longer(cols = chi2:lrt_g,
+               names_to = "test",
+               values_to = "stat")
+
+CI_FA_test
+
+# Calculating P-Values:
+# The number of unique proportions needed for the FA model
+r1 <- I*J*K - 1
+
+# The number of unique proportions needed for the CI model
+r0 <- I + J + K - 3
+
+# The degrees of freedom: r1 - r0
+df_CI <- r1 - r0
+df_CI
+
+CI_FA_test |> 
+  mutate(p_val = pchisq(stat, df = df_CI, lower = F))
+
+#Checking Sample Size:
+meth_CI |> 
+  mutate(n_CI = sum(n)*CI_prop) |> 
+  arrange(n_CI)
+
+#Finding Where Differences Occur:
+meth_CI |>
+  
+  # Calculating the Standardized z-score for each of the 16 groups:
+  mutate(zi = (FA_prop - CI_prop)/sqrt(CI_prop * (1-CI_prop)/sum(n))) |> 
+  
+  # Creating the heat map using ggplot and geom_tile()
+  ggplot(mapping = aes(x = Meth,
+                       y = Education,
+                       fill = zi)) + 
+  
+  geom_tile(color = "white") + 
+  
+  geom_text(mapping = aes(label = round(zi, digits = 2))) +
+  
+  facet_wrap(facets = ~ Age) + 
+  
+  # Removes the buffer around the plot
+  coord_cartesian(expand = F) + 
+  
+  scale_fill_gradient2(low = "red",
+                       mid = "white",
+                       high = "green",
+                       midpoint = 0) + 
+  
+  labs(x = "Used Meth or Not",
+       y = "Education",
+       fill = "z-score for \nFA vs CI models")
+```
+
+```{r Joint Independence}
+meth_JI <- 
+  meth_used_df |> 
+  mutate(edu_use = interaction(Education, Meth, sep = ":"))
+
+meth_JI |> 
+  head(n = 10)
+
+JI_vs_FA <- 
+  chisq_test(x = meth_JI$edu_use,
+             y = meth_JI$Age)
+
+JI_vs_FA
+
+#Checking Expected Counts:
+expected_freq(JI_vs_FA) |> 
+  round(digits = 1)
+
+#Finding Where Differences Occur:
+std_residuals(JI_vs_FA) |> 
+  data.frame() |> 
+  
+  rename(std_res = Freq,
+         Age = y) |> 
+  
+  # Separate will split apart the two variables that we combined together
+  separate(col = x,                               # Column to split
+           into = c("Education", "Meth"),  # name of the new columns
+           sep = ":") |>                          # Where to split the column
+  
+  # Creating the heat map using ggplot and geom_tile()
+  ggplot(mapping = aes(x = Meth,
+                       y = Education,
+                       fill = std_res)) + 
+  
+  geom_tile(color = "white") + 
+  
+  geom_text(mapping = aes(label = round(std_res, digits = 2))) +
+  
+  facet_wrap(facets = ~ Age) + 
+  
+  # Removes the buffer around the plot
+  coord_cartesian(expand = F) + 
+  
+  scale_fill_gradient2(low = "red",
+                       mid = "white",
+                       high = "green",
+                       midpoint = 0) + 
+  
+  labs(x = "Used Meth or Not",
+       y = "Education",
+       fill = "z-score for \nFA vs JI models")
+```
+
