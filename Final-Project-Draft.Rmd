@@ -786,5 +786,5 @@ drug_data |>
   summarize(odds_ratio = oddsratio(table(Age, Education), rev = "col")$measure[2,1])
 
            
- ```
+```
 
