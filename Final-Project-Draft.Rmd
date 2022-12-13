@@ -299,6 +299,8 @@ heroin_used_df <- main_df |>
 
 heroin_used_df$Heroin = ifelse(heroin_used_df$Heroin=='Never','Never Used','Has Used')
 
+
+
 ggplot(data = heroin_used_df,
        mapping = aes(Heroin, ..count..)) +
   geom_bar(aes(fill = Age),
@@ -771,5 +773,83 @@ std_residuals(JI_vs_FA) |>
   labs(x = "Used Meth or Not",
        y = "Education",
        fill = "z-score for \nFA vs JI models")
+```
+
+```{r Homogenous test}
+
+#run Chi square test to first test for association between age and education
+
+chisq_test(x = drug_data$Age,
+           y = drug_data$Education)
+           
+#run homogenous test for association between age and education at different levels of drugs
+drug_data |> 
+  group_by(main_df$Meth) |> 
+  summarize(odds_ratio = oddsratio(table(Age, Education), rev = "col")$measure[2,1])
+
+           
+```
+
+```{r conditional Ind}
+
+
+drug_data <- mutate(drug_data, has_used_Meth = ifelse(Meth == "CL0", "Never", "Used"))
+drug_data <- mutate(drug_data, college= ifelse(Education %in% c("Doctorate degree","Masters degree","Professional certificate/ diploma","University degree"), "Graduated", "Didn't Graduate"))
+
+xtabs(formula = ~ has_used_Meth + Age + college,
+      data = drug_data) |> 
+  ftable()
+
+partial_chisq_tests_Meth <- 
+  drug_data |>
+  # Group by the control variable, Z
+  
+  group_by(college) |> 
+  
+  # Calculating the test statistic, df, and p-value for each individual partial table
+  summarize(test_stat = chisq_test(has_used_Meth, Age)$statistic,
+            df = chisq_test(has_used_Meth, Age)$df,
+            p_val = chisq_test(has_used_Meth, Age)$p)
+
+partial_chisq_tests_Meth 
+
+cond_ind_test_Meth <- partial_chisq_tests_Meth$test_stat |> sum()
+cond_ind_test_Meth
+
+# P-value:
+pchisq(q = cond_ind_test_Meth,
+       df = 4,
+       lower = F)
+```
+
+```{r}
+
+drug_data <- mutate(drug_data, has_used_Heroin = ifelse(Heroin == "CL0", "Never", "Used"))
+drug_data <- mutate(drug_data, college= ifelse(Education %in% c("Doctorate degree","Masters degree","Professional certificate/ diploma","University degree"), "Graduated", "Didn't Graduate"))
+
+xtabs(formula = ~ has_used_Heroin + Age + college,
+      data = drug_data) |> 
+  ftable()
+
+partial_chisq_tests_Her <- 
+  drug_data |>
+  # Group by the control variable, Z
+  
+  group_by(college) |> 
+  
+  # Calculating the test statistic, df, and p-value for each individual partial table
+  summarize(test_stat = chisq_test(has_used_Heroin, Age)$statistic,
+            df = chisq_test(has_used_Heroin, Age)$df,
+            p_val = chisq_test(has_used_Heroin, Age)$p)
+
+partial_chisq_tests_Her 
+
+cond_ind_test_Her <- partial_chisq_tests_Her$test_stat |> sum()
+cond_ind_test_Her
+
+# P-value:
+pchisq(q = cond_ind_test_Her,
+       df = 4,
+       lower = F)
 ```
 
