@@ -611,12 +611,16 @@ With a test statistic of 49.856 and 30 degrees of freedom the resulting P-value 
 
 ##### Expected values check
 ```{r}
+
+drug_data_ex_old<-mutate(drug_data_ex_old, college= ifelse(Education %in% c("Doctorate degree","Masters degree","Professional certificate/ diploma","University degree"), "Graduated", "Didn't Graduate"))
 drug_data_ex_old |> 
   group_by(Age) |> 
   
   summarize(below_5 = sum(chisq.test(has_used_Heroin, college)$expected <5))
 
 ```
+
+There is one expected count below 5, but all the other counts pass the check
 
 #### Homogenous Test
 ```{r Homogenous Test}
@@ -897,16 +901,20 @@ pchisq(q = cond_ind_test_Meth,
        df = df,
        lower = F)
 ```
-With a test statistic of 57.239 and 30 degrees of freedom the resulting P-value is .00196. With a P-value < .05 we reject our null hypothesis that the relationship between age and Meth use is conditional on education level.
+With a test statistic of 57.239 and 30 degrees of freedom the resulting P-value is .00196. With a P-value < .05 we reject our null hypothesis that the relationship between age and Heroin use is conditional on education level.
 
 
 ##### Expected value check
 ```{r}
-drug_data |> 
+
+
+drug_data_ex_old |> 
   group_by(Age) |> 
   
   summarize(below_5 = sum(chisq.test(has_used_Meth, college)$expected <5))
 ```
+
+There is one expected count below 5, but all the other counts pass the check
 
 #### Homogenous Test
 ```{r Homogenous test}
