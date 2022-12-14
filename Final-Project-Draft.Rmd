@@ -16,9 +16,6 @@ knitr::opts_chunk$set(echo = TRUE)
 pacman::p_load(socviz, tidyverse, rstatix, DescTools, gtExtras, rcompanion, sjPlot)
 #tinytex::install_tinytex()
 
-#ufc_fulldata <- read.csv("data.csv")
-#disaster_data <- read.csv("us_disaster_declarations.csv")
-
 drug_data <- read.csv("Drug_Consumption.csv")
 ```
 
@@ -255,16 +252,16 @@ ggplot(age_prop, aes(x=Age, y=prop))+
 
 ```{r heavier drug use by age, echo=FALSE}
 #Heroin
-heroin_age_prop <- main_df |>
-  group_by(Age) |>
-  group_by(Heroin) |>
-  count(Heroin) |>
-  ungroup() |>
-  mutate(prop = n/sum(n))
-ggplot(data = main_df,
-       mapping = aes(Age, ..count..)) +
-  geom_bar(aes(fill = Heroin),
-           position = "dodge")
+Age_Heroin_prop<-data.frame(prop.table(xtabs(data = main_df, ~Heroin+Age),margin="Age"))
+Age_Heroin_prop
+# ggplot(data = Age_Heroin_prop,
+#        mapping = aes(Age)) +
+#   geom_bar(aes(fill = Heroin),
+#            position = "dodge")
+
+ggplot(Age_Heroin_prop, aes(x=Age,y=Freq, fill=Heroin))+
+  geom_col()
+
 
 #Methamphetamines
 ggplot(data = main_df,
@@ -771,5 +768,20 @@ std_residuals(JI_vs_FA) |>
   labs(x = "Used Meth or Not",
        y = "Education",
        fill = "z-score for \nFA vs JI models")
+```
+
+```{r Homogenous test}
+
+#run Chi square test to first test for association between age and education
+
+Chisq_test(x = drug_data$Age,
+           y = drives$Education)
+           
+#run homogenous test for association between age and education at different levels of drugs
+drug_data |> 
+  group_by(main_df$Meth) |> 
+  summarize(odds_ratio = oddsratio(table(Age, Education), rev = "col")$measure[2,1])
+
+           
 ```
 
