@@ -820,9 +820,14 @@ partial_chisq_tests_Meth
 cond_ind_test_Meth <- partial_chisq_tests_Meth$test_stat |> sum()
 cond_ind_test_Meth
 
+##IJK - 1 -(I + J -1)K - 1
+
+df<-((2)*(9)*4 )-((2+9-1)*4)-2
+
+
 # P-value:
 pchisq(q = cond_ind_test_Meth,
-       df = 32,
+       df = df,
        lower = F)
 ```
 ###Expected value check
@@ -864,13 +869,12 @@ cond_ind_test_Her
 
 ##IJK - 1 -(I + J -1)K - 1
 
-(((2)*(9)*4 )-1)-39
-
+df<- ((2)*(9)*4 )-((2+9-1)*4)-2
 
 
 # P-value:
 pchisq(q = cond_ind_test_Her,
-       df = 32,
+       df = df,
        lower = F)
 ```
 ###Expected values check
