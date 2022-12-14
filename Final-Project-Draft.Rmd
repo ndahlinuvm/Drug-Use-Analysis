@@ -775,12 +775,16 @@ std_residuals(JI_vs_FA) |>
 #run Chi square test to first test for association between age and education
 
 Chisq_test(x = drug_data$Age,
-           y = drives$Education)
+           y = drug_data$Education)
            
-#run homogenous test for association between age and education at different levels of drugs
-drug_data |> 
-  group_by(main_df$Meth) |> 
-  summarize(odds_ratio = oddsratio(table(Age, Education), rev = "col")$measure[2,1])
+#run Breslow Day test for association between age and education at different levels of drugs
+drug_data <- 
+  xtabs(formula = ~ Age + Education + Meth,
+        data = drug_data) |> 
+  
+  BreslowDayTest()
+
+drug_data
 
            
 ```
