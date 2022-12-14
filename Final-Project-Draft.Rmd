@@ -222,7 +222,7 @@ head(main_df)
 
 
 ## Data Summary
-We are interested in initially looking at the association between age and certain types of drug use as well as personality traits and drug use. From there we are interested at looking at the associations between these controlling for education level. These are some of our inital data summaries:
+We are interested in initially looking at the association between age and certain types of drug use as well as personality traits and drug use. From there we are interested at looking at the associations between these controlling for education level. These are some of our initial data summaries:
 
 ### Distribution of Ages
 ```{r}
@@ -572,7 +572,6 @@ std_residuals(JI_vs_FA) |>
 ```{r Cond Ind test Heroin }
 
 drug_data <- mutate(drug_data, has_used_Heroin = ifelse(Heroin == "CL0", "Never", "Used"))
-drug_data <- mutate(drug_data, college= ifelse(Education %in% c("Doctorate degree","Masters degree","Professional certificate/ diploma","University degree"), "Graduated", "Didn't Graduate"))
 
 drug_data_ex_old <- filter(drug_data, Age != "65+")
 
@@ -606,6 +605,10 @@ pchisq(q = cond_ind_test_Her,
        df = df,
        lower = F)
 ```
+With a test statistic of 49.856 and 30 degrees of freedom the resulting P-value is .0128. With a P-value < .05 we reject our null hypothesis that the relationship between age and Heroin use is conditional on education level.
+
+
+
 ##### Expected values check
 ```{r}
 drug_data_ex_old |> 
@@ -894,6 +897,9 @@ pchisq(q = cond_ind_test_Meth,
        df = df,
        lower = F)
 ```
+With a test statistic of 57.239 and 30 degrees of freedom the resulting P-value is .00196. With a P-value < .05 we reject our null hypothesis that the relationship between age and Meth use is conditional on education level.
+
+
 ##### Expected value check
 ```{r}
 drug_data |> 
