@@ -617,13 +617,19 @@ drug_data_ex_old |>
 
 #### Homogenous Test
 ```{r Homogenous Test}
-Chisq_test(x = drug_data$Age,
-           y = drug_data$Education)
-           
+#make education variable binary so we can run homogenous test
+heroin_used_df <- mutate(heroin_used_df, college= ifelse(Education %in% c("Doctorate degree","Masters degree","Professional certificate/ diploma","University degree"), "Graduated", "Didn't Graduate"))
+       
+#run Chi square test to first test for association between age and education
+
+chisq_test(x = heroin_used_df$Age,
+           y = heroin_used_df$college)
+
+temp_df <- filter(heroin_used_df,Age!="65+") 
 #run Breslow Day test for association between age and education at different levels of drugs
 drug_data_BDtest <- 
-  xtabs(formula = ~ Age + Education + Meth,
-        data = drug_data) |> 
+  xtabs(formula = ~ Heroin + college + Age,
+        data = temp_df) |> 
   
   BreslowDayTest()
 
@@ -898,24 +904,22 @@ drug_data |>
 
 #### Homogenous Test
 ```{r Homogenous test}
-
+#make education variable binary so we can run homogenous test
+meth_used_df <- mutate(meth_used_df, college= ifelse(Education %in% c("Doctorate degree","Masters degree","Professional certificate/ diploma","University degree"), "Graduated", "Didn't Graduate"))
+       
 #run Chi square test to first test for association between age and education
 
-Chisq_test(x = drug_data$Age,
-           y = drug_data$Education)
-           
-#make education variable binary so we can run homogenous test
+chisq_test(x = meth_used_df$Age,
+           y = meth_used_df$college)
 
-drug_data <- mutate(drug_data, college= ifelse(Education %in% c("Doctorate degree","Masters degree","Professional certificate/ diploma","University degree"), "Graduated", "Didn't Graduate"))
-           
+temp_df <- filter(meth_used_df,Age!="65+") 
 #run Breslow Day test for association between age and education at different levels of drugs
 drug_data_BDtest <- 
-  xtabs(formula = ~ Age + Education + Meth,
-        data = drug_data) |> 
+  xtabs(formula = ~ Meth + college + Age,
+        data = temp_df) |> 
   
   BreslowDayTest()
 
 drug_data_BDtest
 
-           
 ```
