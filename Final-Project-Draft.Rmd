@@ -288,7 +288,9 @@ ggplot(data = main_df,
 
 ```
 
-### Examining Heroin and Meth Use by Education
+## Examining Initial Relationships (Tests for Two Variables)
+
+### Heroin by Age
 ```{r Heroin by Age}
 # By Age
 heroin_used_df <- main_df |>
@@ -346,6 +348,7 @@ cramerV(heroin_edu_freq,
         conf = 0.95)
 ```
 
+### Meth by Age
 ```{r Meth by Age}
 meth_used_df <- main_df |>
   select(Age,Education,Country,Nscore,Escore,Impulsive,Meth)
@@ -402,8 +405,12 @@ cramerV(meth_edu_freq,
         conf = 0.95)
 ```
 
-### Tests for Heroin and Meth Use by Age and Education
-#### Heroin
+## Examining More Complicated Relationships (Tests for Multiple Variables)
+Looking more heavily at Drug Use, Age, and Education.
+
+### Heroin
+
+#### Complete Independence
 ```{r Heroin Complete Independence}
 #Getting Counts and Expected Proportions
 heroin_sum <- 
@@ -506,6 +513,7 @@ heroin_CI |>
        fill = "z-score for \nFA vs CI models")
 ```
 
+#### Joint Independence
 ```{r Heroin Joint Independence}
 heroin_JI <- 
   heroin_used_df |> 
@@ -560,6 +568,8 @@ std_residuals(JI_vs_FA) |>
        fill = "z-score for \nFA vs JI models")
 ```
 
+#### Conditional Independence
+!!!Dont use chunk!!!
 ```{r Heroin Conditional Independence}
 xtabs(formula = ~ Age + Heroin + Education,
       data = heroin_used_df)
@@ -605,15 +615,19 @@ partial_G_tests <-
 
 partial_G_tests 
 
+#(IJK)-1-(I+J-1)K-1
+df=(2*6*5)-1-(2+6-1)*5-1
 # test stat and p-value
 c(G = sum(partial_G_tests$test_stat),
   p_val = pchisq(q = sum(partial_G_tests$test_stat),
-                 df = 6,
+                 df = df,
                  lower = F))
 ```
 
 
-#### Meth
+### Meth
+
+#### Complete Independence
 ```{r Meth Complete Independence}
 #Getting Counts and Expected Values:
 meth_sum <- 
@@ -716,6 +730,7 @@ meth_CI |>
        fill = "z-score for \nFA vs CI models")
 ```
 
+#### Joint Independence
 ```{r Joint Independence}
 meth_JI <- 
   meth_used_df |> 
@@ -778,13 +793,13 @@ Chisq_test(x = drug_data$Age,
            y = drug_data$Education)
            
 #run Breslow Day test for association between age and education at different levels of drugs
-drug_data <- 
+drug_data_BDtest <- 
   xtabs(formula = ~ Age + Education + Meth,
         data = drug_data) |> 
   
   BreslowDayTest()
 
-drug_data
+drug_data_BDtest
 
            
 ```
