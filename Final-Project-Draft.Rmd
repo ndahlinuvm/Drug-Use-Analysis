@@ -922,4 +922,6 @@ drug_data_BDtest <-
 
 drug_data_BDtest
 
+# After running the Breslow Day Test, we computed a chi-squared value of 3.347, and a p-value of .5015. We fail to reject the null and conclude we do not have strong evidence in favor of the alternative.
+
 ```
