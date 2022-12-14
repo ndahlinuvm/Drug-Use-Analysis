@@ -790,21 +790,25 @@ drug_data |>
            
 ```
 
-```{r conditional Ind}
+##Conditional Independence for Meth and college conditional on age 
+```{r conditional Ind Meth}
 
 
 drug_data <- mutate(drug_data, has_used_Meth = ifelse(Meth == "CL0", "Never", "Used"))
-drug_data <- mutate(drug_data, college= ifelse(Education %in% c("Doctorate degree","Masters degree","Professional certificate/ diploma","University degree"), "Graduated", "Didn't Graduate"))
 
-xtabs(formula = ~ has_used_Meth + Age + college,
-      data = drug_data) |> 
+##drug_data <- mutate(drug_data, college= ifelse(Education %in% c("Doctorate degree","Masters degree","Professional certificate/ diploma","University degree"), "Graduated", "Didn't Graduate"))
+
+drug_data_ex_old <- filter(drug_data, Age != "65+")
+
+xtabs(formula = ~ has_used_Meth + Age + Education,
+      data = drug_data_ex_old) |> 
   ftable()
 
 partial_chisq_tests_Meth <- 
-  drug_data |>
+  drug_data_ex_old |>
   # Group by the control variable, Z
   
-  group_by(college) |> 
+  group_by(Education) |> 
   
   # Calculating the test statistic, df, and p-value for each individual partial table
   summarize(test_stat = chisq_test(has_used_Meth, Age)$statistic,
@@ -818,24 +822,35 @@ cond_ind_test_Meth
 
 # P-value:
 pchisq(q = cond_ind_test_Meth,
-       df = 4,
+       df = 32,
        lower = F)
 ```
-
+###Expected value check
 ```{r}
+drug_data |> 
+  group_by(Age) |> 
+  
+  summarize(below_5 = sum(chisq.test(has_used_Meth, college)$expected <5))
+```
+
+
+##Conditional Independence for Heroin and college conditional on age 
+```{r Cond Ind test Heroin }
 
 drug_data <- mutate(drug_data, has_used_Heroin = ifelse(Heroin == "CL0", "Never", "Used"))
 drug_data <- mutate(drug_data, college= ifelse(Education %in% c("Doctorate degree","Masters degree","Professional certificate/ diploma","University degree"), "Graduated", "Didn't Graduate"))
 
-xtabs(formula = ~ has_used_Heroin + Age + college,
-      data = drug_data) |> 
+drug_data_ex_old <- filter(drug_data, Age != "65+")
+
+xtabs(formula = ~ has_used_Heroin + Education + Age,
+      data = drug_data_ex_old) |> 
   ftable()
 
 partial_chisq_tests_Her <- 
-  drug_data |>
+  drug_data_ex_old |>
   # Group by the control variable, Z
   
-  group_by(college) |> 
+  group_by(Education) |> 
   
   # Calculating the test statistic, df, and p-value for each individual partial table
   summarize(test_stat = chisq_test(has_used_Heroin, Age)$statistic,
@@ -847,9 +862,22 @@ partial_chisq_tests_Her
 cond_ind_test_Her <- partial_chisq_tests_Her$test_stat |> sum()
 cond_ind_test_Her
 
+##IJK - 1 -(I + J -1)K - 1
+
+(((2)*(9)*4 )-1)-39
+
+
+
 # P-value:
 pchisq(q = cond_ind_test_Her,
-       df = 4,
+       df = 32,
        lower = F)
+```
+###Expected values check
+```{r}
+drug_data_ex_old |> 
+  group_by(Age) |> 
+  
+  summarize(below_5 = sum(chisq.test(has_used_Heroin, college)$expected <5))
 ```
 
