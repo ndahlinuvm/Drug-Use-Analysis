@@ -904,6 +904,10 @@ drug_data |>
 Chisq_test(x = drug_data$Age,
            y = drug_data$Education)
            
+#make education variable binary so we can run homogenous test
+
+drug_data <- mutate(drug_data, college= ifelse(Education %in% c("Doctorate degree","Masters degree","Professional certificate/ diploma","University degree"), "Graduated", "Didn't Graduate"))
+           
 #run Breslow Day test for association between age and education at different levels of drugs
 drug_data_BDtest <- 
   xtabs(formula = ~ Age + Education + Meth,
