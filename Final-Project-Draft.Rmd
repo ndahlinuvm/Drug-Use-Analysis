@@ -687,6 +687,7 @@ drug_data_BDtest
 
 
 ### Meth
+Here we are comparing Meth and Age and Edu
 
 #### Complete Independence
 ```{r Meth Complete Independence}
@@ -790,6 +791,7 @@ meth_CI |>
        y = "Education",
        fill = "z-score for \nFA vs CI models")
 ```
+Based on
 
 #### Joint Independence
 ```{r Joint Independence}
