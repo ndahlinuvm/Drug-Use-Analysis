@@ -576,19 +576,23 @@ drug_data <- mutate(drug_data, has_used_Heroin = ifelse(Heroin == "CL0", "Never"
 
 drug_data_comb_old <- mutate(drug_data, Age = ifelse(Age == "65+","55-64",Age))
 
-I <- n_distinct(drug_data_comb_old$Education)
-J <- n_distinct(drug_data_comb_old$has_used_Heroin)
-K <- n_distinct(drug_data_comb_old$Age)
+drug_data_test <- mutate(drug_data_comb_old, college= ifelse(Education %in% c("Left school at 18 years","Left school at 17 years","Left school at 16 years","Left school before 16 years"), "No College", Education))|>
+  mutate(college= ifelse(Education == "Some college or university, no certificate or degree","Some College",college))|>
+  mutate(college= ifelse(Education %in% c("Doctorate degree","Masters degree","Professional certificate/ diploma","University degree"), "Graduated", college))
 
-xtabs(formula = ~ has_used_Heroin + Education + Age,
-      data = drug_data_comb_old) |> 
+I <- n_distinct(drug_data_test$college)
+J <- n_distinct(drug_data_test$has_used_Heroin)
+K <- n_distinct(drug_data_test$Age)
+
+xtabs(formula = ~ has_used_Heroin + college + Age,
+      data = drug_data_test) |> 
   ftable()
 
 partial_chisq_tests_Her <- 
   drug_data_comb_old |>
   # Group by the control variable, Z
   
-  group_by(Education) |> 
+  group_by(college) |> 
   
   # Calculating the test statistic, df, and p-value for each individual partial table
   summarize(test_stat = chisq_test(has_used_Heroin, Age)$statistic,
@@ -872,21 +876,26 @@ std_residuals(JI_vs_FA) |>
 
 drug_data_comb_old <- mutate(drug_data_comb_old, has_used_Meth = ifelse(Meth == "CL0", "Never", "Used"))
 
-I <- n_distinct(drug_data_comb_old$Education)
-J <- n_distinct(drug_data_comb_old$has_used_Meth)
-K <- n_distinct(drug_data_comb_old$Age)
 
-##drug_data <- mutate(drug_data, college= ifelse(Education %in% c("Doctorate degree","Masters degree","Professional certificate/ diploma","University degree"), "Graduated", "Didn't Graduate"))
 
-xtabs(formula = ~ has_used_Meth + Age + Education,
-      data = drug_data_comb_old) |> 
+drug_data_test <- mutate(drug_data_comb_old, college= ifelse(Education %in% c("Left school at 18 years","Left school at 17 years","Left school at 16 years","Left school before 16 years"), "No College", Education))|>
+  mutate(college= ifelse(Education == "Some college or university, no certificate or degree","Some College",college))|>
+  mutate(college= ifelse(Education %in% c("Doctorate degree","Masters degree","Professional certificate/ diploma","University degree"), "Graduated", college))
+
+I <- n_distinct(drug_data_test$college)
+J <- n_distinct(drug_data_test$has_used_Meth)
+K <- n_distinct(drug_data_test$Age)
+  
+
+xtabs(formula = ~ has_used_Meth + Age + college,
+      data = drug_data_test) |> 
   ftable()
 
 partial_chisq_tests_Meth <- 
-  drug_data_comb_old |>
+  drug_data_test |>
   # Group by the control variable, Z
   
-  group_by(Education) |> 
+  group_by(college) |> 
   
   # Calculating the test statistic, df, and p-value for each individual partial table
   summarize(test_stat = chisq_test(has_used_Meth, Age)$statistic,
@@ -912,7 +921,7 @@ With a test statistic of 60.909 and 38 degrees of freedom the resulting P-value 
 
 
 ##### Expected value check
-```{r}
+```{r warning=TRUE}
 
 
 drug_data_ex_old |> 
