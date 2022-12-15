@@ -572,6 +572,8 @@ std_residuals(JI_vs_FA) |>
 ```{r Cond Ind test Heroin }
 
 
+
+
 drug_data <- mutate(drug_data, has_used_Heroin = ifelse(Heroin == "CL0", "Never", "Used"))
 
 drug_data_comb_old <- mutate(drug_data, Age = ifelse(Age == "65+","55-64",Age))
@@ -584,9 +586,6 @@ I <- n_distinct(drug_data_test$college)
 J <- n_distinct(drug_data_test$has_used_Heroin)
 K <- n_distinct(drug_data_test$Age)
 
-xtabs(formula = ~ has_used_Heroin + college + Age,
-      data = drug_data_test) |> 
-  ftable()
 
 partial_chisq_tests_Her <- 
   drug_data_comb_old |>
@@ -599,9 +598,9 @@ partial_chisq_tests_Her <-
             df = chisq_test(has_used_Heroin, Age)$df,
             p_val = chisq_test(has_used_Heroin, Age)$p)
 
-partial_chisq_tests_Her 
 
 cond_ind_test_Her <- partial_chisq_tests_Her$test_stat |> sum()
+
 cond_ind_test_Her
 
 
@@ -615,15 +614,13 @@ pchisq(q = cond_ind_test_Her,
        df = df,
        lower = F)
 ```
-With a test statistic of 50.904 and 38 degrees of freedom the resulting P-value is .0787. With a P-value > .05 we fail to reject our null hypothesis that the relationship between Age and Heroin use is conditional on Education level, and conclude that the relationship between Age and Heroin use could be conditionally dependent on Education level.
+With a test statistic of 12.495 and 8 degrees of freedom the resulting P-value is .130. With a P-value > .05 we fail to reject our null hypothesis that the relationship between Age and Heroin use is conditional on Education level, and conclude that the relationship between Age and Heroin use could be conditionally dependent on Education level.
 
 
 
 ##### Expected values check
 ```{r}
-
-drug_data_comb_old<-mutate(drug_data_ex_old, college= ifelse(Education %in% c("Doctorate degree","Masters degree","Professional certificate/ diploma","University degree"), "Graduated", "Didn't Graduate"))
-drug_data_comb_old |> 
+drug_data_test |> 
   group_by(Age) |> 
   
   summarize(below_5 = sum(chisq.test(has_used_Heroin, college)$expected <5))
@@ -872,7 +869,7 @@ std_residuals(JI_vs_FA) |>
 ```
 
 ####Conditional Independence
-```{r conditional Ind Meth}
+```{r conditional Ind Meth, warning=FALSE}
 
 drug_data_comb_old <- mutate(drug_data_comb_old, has_used_Meth = ifelse(Meth == "CL0", "Never", "Used"))
 
@@ -887,10 +884,6 @@ J <- n_distinct(drug_data_test$has_used_Meth)
 K <- n_distinct(drug_data_test$Age)
   
 
-xtabs(formula = ~ has_used_Meth + Age + college,
-      data = drug_data_test) |> 
-  ftable()
-
 partial_chisq_tests_Meth <- 
   drug_data_test |>
   # Group by the control variable, Z
@@ -902,22 +895,18 @@ partial_chisq_tests_Meth <-
             df = chisq_test(has_used_Meth, Age)$df,
             p_val = chisq_test(has_used_Meth, Age)$p)
 
-partial_chisq_tests_Meth 
 
 cond_ind_test_Meth <- partial_chisq_tests_Meth$test_stat |> sum()
 cond_ind_test_Meth
 
 df<-(I*J*K) - 1 -((I + J -1)*K) - 1
 
-##df<-((2)*(9)*4 )-((2+9-1)*4)-2
-
-
 # P-value:
 pchisq(q = cond_ind_test_Meth,
        df = df,
        lower = F)
 ```
-With a test statistic of 60.909 and 38 degrees of freedom the resulting P-value is .0106. With a P-value < .05 we reject our null hypothesis that the relationship between age and Heroin use is conditional on education level.
+With a test statistic of 42.379 and 8 degrees of freedom the resulting P-value is ~0. With a P-value < .05 we reject our null hypothesis that the relationship between age and Heroin use is conditional on education level.
 
 
 ##### Expected value check
