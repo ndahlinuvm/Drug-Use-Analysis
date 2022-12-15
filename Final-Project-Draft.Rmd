@@ -3,29 +3,28 @@ title: "Stat235 Final Project"
 author: "Nils Dahlin, Connor Guyette, Jon Kramer"
 date: "10/20/2022"
 output:
-  html_document: default
-  word_document: default
   pdf_document: default
+  word_document: default
+  html_document: default
 ---
-# Final Project Proposal
+# Stat235 Final Project: Drug Use Analysis
 Nils Dahlin, Connor Guyette, and Jon Kramer
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 
-pacman::p_load(socviz, tidyverse, rstatix, DescTools, gtExtras, rcompanion, sjPlot)
+pacman::p_load(socviz, tidyverse, rstatix, gridExtra, DescTools, gtExtras, rcompanion, sjPlot)
 #tinytex::install_tinytex()
 
 drug_data <- read.csv("Drug_Consumption.csv")
 ```
 
 ## Introduction
-We are interested in looking at the associations between age/gender/and education and drug usage 
-but the data set was also interesting because it measures personality traits such as extroversion, agreeableness, impulsiveness, conscientiousness, and more. We think it would be really interesting to explore the associations between these traits and the use of different drugs and the number of different drugs used
+Originally this project was going to be a general analysis of drug use and how factors like age, education level, and personality traits can affect a person's chances of using or trying different drugs. Soon into the process however we discovered some discussions about the increase in violent and destructive crime in Burlington and the possibility that it could be linked to an  increase in Meth usage in the city which can lead to more expressive and chaotic outbreaks compared to drugs like Morphine or Heroin which normally have calming or sedative effects for the user. Due to this discovery we thought it would be interesting to focus on Meth as well as Heroin due to the ongoing Opioid epidemic in the region. In this project we will explore the relationships between these drugs and the features of Age and Education as well as looking at further complicated Logistic Regression models at the end with the addition of personality traits to explore those relationships a bit more.
 
 ## Data Description
-This data set is a collection of 1884 data points that track different attributes/features of individuals
-including age/gender/education level/country/ethnicity/personality trait scores/ and drugs used and when. 
+The data set we will be using is a collection of 1884 data points that track different attributes/features of individuals
+including age/gender/education level/country/ethnicity/personality trait scores/and drugs used and when. 
 
 Here is a quick look at the first 5 entries of our data set.
 
@@ -36,14 +35,15 @@ head(drug_data,5)
 These are the descriptions for the more nondescript features: 
 
 Personality Traits:<br/>
-NSScore - Neuroticism<br/>
-EScore - Extraversion<br/>
+NScore - Neuroticism<br/>
+EScore - Extroversion<br/>
 OScore - Openness to Experience<br/>
 AScore - Agreeableness<br/>
 CScore - Conscientiousness<br/>
 Impulsiveness<br/>
 SS - Sensation Seeing<br/>
--The dataset we pulled had altered the personality trait scores for analysis. We believe they have been normalized for analysis and from researching the dataset it looks like the original scale was 0-12 or 1-12 so during later analysis and testing we will have to decide if we want to revert to the discrete scale or keep the values as normalized scores 
+<br/>
+The dataset we pulled had altered the personality trait scores for analysis. The scores have been normalized and specific values represent a Z-Score or Standard Deviation. We will be using the scores for Neuroticism, Extroversion, Openness to Experience, Agreeableness, Conscientiousness, and Impulsiveness later on towards the end of this project. 
 
 Drug Use Classifications:
 CL0 - Never used<br/>
@@ -53,10 +53,12 @@ CL3 - Used in last year<br/>
 CL4 - Used in last month<br/>
 CL5 - Used in last week<br/>
 CL6 - Used in last day<br/>
+<br/>
+These classifications will later be reduced to whether an individual has used the drug at some point or never used the drug.
 
 ```{r removing features}
 # removing features we will not be using
-main_df <- select(drug_data,-ID,-Semer,-VSA,-Amyl,-Benzos,-Choc,-Ecstasy,-Legalh)
+main_df <- select(drug_data, Age, Gender, Education, Country, Nscore, Escore, Oscore, AScore, Cscore, Impulsive, Heroin, Meth)
 sjPlot::view_df(main_df,
  show.frq = T,
  show.prc = T,
@@ -65,60 +67,6 @@ sjPlot::view_df(main_df,
 ```
 
 ```{r reclassify drug use and education and reorganize}
-#Alcohol
-main_df$Alcohol[main_df$Alcohol=='CL0'] <- 'Never'
-main_df$Alcohol[main_df$Alcohol=='CL1'] <- 'Over a Decade'
-main_df$Alcohol[main_df$Alcohol=='CL2'] <- 'Last Decade'
-main_df$Alcohol[main_df$Alcohol=='CL3'] <- 'Last Year'
-main_df$Alcohol[main_df$Alcohol=='CL4'] <- 'Last Month'
-main_df$Alcohol[main_df$Alcohol=='CL5'] <- 'Last Week'
-main_df$Alcohol[main_df$Alcohol=='CL6'] <- 'Last Day'
-
-#Amphetamines
-main_df$Amphet[main_df$Amphet=='CL0'] <- 'Never'
-main_df$Amphet[main_df$Amphet=='CL1'] <- 'Over a Decade'
-main_df$Amphet[main_df$Amphet=='CL2'] <- 'Last Decade'
-main_df$Amphet[main_df$Amphet=='CL3'] <- 'Last Year'
-main_df$Amphet[main_df$Amphet=='CL4'] <- 'Last Month'
-main_df$Amphet[main_df$Amphet=='CL5'] <- 'Last Week'
-main_df$Amphet[main_df$Amphet=='CL6'] <- 'Last Day'
-
-#Caffeine
-main_df$Caff[main_df$Caff=='CL0'] <- 'Never'
-main_df$Caff[main_df$Caff=='CL1'] <- 'Over a Decade'
-main_df$Caff[main_df$Caff=='CL2'] <- 'Last Decade'
-main_df$Caff[main_df$Caff=='CL3'] <- 'Last Year'
-main_df$Caff[main_df$Caff=='CL4'] <- 'Last Month'
-main_df$Caff[main_df$Caff=='CL5'] <- 'Last Week'
-main_df$Caff[main_df$Caff=='CL6'] <- 'Last Day'
-
-#Cannabis
-main_df$Cannabis[main_df$Cannabis=='CL0'] <- 'Never'
-main_df$Cannabis[main_df$Cannabis=='CL1'] <- 'Over a Decade'
-main_df$Cannabis[main_df$Cannabis=='CL2'] <- 'Last Decade'
-main_df$Cannabis[main_df$Cannabis=='CL3'] <- 'Last Year'
-main_df$Cannabis[main_df$Cannabis=='CL4'] <- 'Last Month'
-main_df$Cannabis[main_df$Cannabis=='CL5'] <- 'Last Week'
-main_df$Cannabis[main_df$Cannabis=='CL6'] <- 'Last Day'
-
-#Cocaine
-main_df$Coke[main_df$Coke=='CL0'] <- 'Never'
-main_df$Coke[main_df$Coke=='CL1'] <- 'Over a Decade'
-main_df$Coke[main_df$Coke=='CL2'] <- 'Last Decade'
-main_df$Coke[main_df$Coke=='CL3'] <- 'Last Year'
-main_df$Coke[main_df$Coke=='CL4'] <- 'Last Month'
-main_df$Coke[main_df$Coke=='CL5'] <- 'Last Week'
-main_df$Coke[main_df$Coke=='CL6'] <- 'Last Day'
-
-#Crack
-main_df$Crack[main_df$Crack=='CL0'] <- 'Never'
-main_df$Crack[main_df$Crack=='CL1'] <- 'Over a Decade'
-main_df$Crack[main_df$Crack=='CL2'] <- 'Last Decade'
-main_df$Crack[main_df$Crack=='CL3'] <- 'Last Year'
-main_df$Crack[main_df$Crack=='CL4'] <- 'Last Month'
-main_df$Crack[main_df$Crack=='CL5'] <- 'Last Week'
-main_df$Crack[main_df$Crack=='CL6'] <- 'Last Day'
-
 #Heroin
 main_df$Heroin[main_df$Heroin=='CL0'] <- 'Never'
 main_df$Heroin[main_df$Heroin=='CL1'] <- 'Over a Decade'
@@ -127,24 +75,6 @@ main_df$Heroin[main_df$Heroin=='CL3'] <- 'Last Year'
 main_df$Heroin[main_df$Heroin=='CL4'] <- 'Last Month'
 main_df$Heroin[main_df$Heroin=='CL5'] <- 'Last Week'
 main_df$Heroin[main_df$Heroin=='CL6'] <- 'Last Day'
-
-#Ketamine
-main_df$Ketamine[main_df$Ketamine=='CL0'] <- 'Never'
-main_df$Ketamine[main_df$Ketamine=='CL1'] <- 'Over a Decade'
-main_df$Ketamine[main_df$Ketamine=='CL2'] <- 'Last Decade'
-main_df$Ketamine[main_df$Ketamine=='CL3'] <- 'Last Year'
-main_df$Ketamine[main_df$Ketamine=='CL4'] <- 'Last Month'
-main_df$Ketamine[main_df$Ketamine=='CL5'] <- 'Last Week'
-main_df$Ketamine[main_df$Ketamine=='CL6'] <- 'Last Day'
-
-#LSD
-main_df$LSD[main_df$LSD=='CL0'] <- 'Never'
-main_df$LSD[main_df$LSD=='CL1'] <- 'Over a Decade'
-main_df$LSD[main_df$LSD=='CL2'] <- 'Last Decade'
-main_df$LSD[main_df$LSD=='CL3'] <- 'Last Year'
-main_df$LSD[main_df$LSD=='CL4'] <- 'Last Month'
-main_df$LSD[main_df$LSD=='CL5'] <- 'Last Week'
-main_df$LSD[main_df$LSD=='CL6'] <- 'Last Day'
 
 #Methamphetamines
 main_df$Meth[main_df$Meth=='CL0'] <- 'Never'
@@ -155,84 +85,45 @@ main_df$Meth[main_df$Meth=='CL4'] <- 'Last Month'
 main_df$Meth[main_df$Meth=='CL5'] <- 'Last Week'
 main_df$Meth[main_df$Meth=='CL6'] <- 'Last Day'
 
-#Psylocibin
-main_df$Mushrooms[main_df$Mushrooms=='CL0'] <- 'Never'
-main_df$Mushrooms[main_df$Mushrooms=='CL1'] <- 'Over a Decade'
-main_df$Mushrooms[main_df$Mushrooms=='CL2'] <- 'Last Decade'
-main_df$Mushrooms[main_df$Mushrooms=='CL3'] <- 'Last Year'
-main_df$Mushrooms[main_df$Mushrooms=='CL4'] <- 'Last Month'
-main_df$Mushrooms[main_df$Mushrooms=='CL5'] <- 'Last Week'
-main_df$Mushrooms[main_df$Mushrooms=='CL6'] <- 'Last Day'
-
-#Nicotine
-main_df$Nicotine[main_df$Nicotine=='CL0'] <- 'Never'
-main_df$Nicotine[main_df$Nicotine=='CL1'] <- 'Over a Decade'
-main_df$Nicotine[main_df$Nicotine=='CL2'] <- 'Last Decade'
-main_df$Nicotine[main_df$Nicotine=='CL3'] <- 'Last Year'
-main_df$Nicotine[main_df$Nicotine=='CL4'] <- 'Last Month'
-main_df$Nicotine[main_df$Nicotine=='CL5'] <- 'Last Week'
-main_df$Nicotine[main_df$Nicotine=='CL6'] <- 'Last Day'
-
 #Education
 main_df$Education[main_df$Education=='Left school before 16 years'] <- 'No College/University'
 main_df$Education[main_df$Education=='Left school at 16 years'] <- 'No College/University'
 main_df$Education[main_df$Education=='Left school at 17 years'] <- 'No College/University'
 main_df$Education[main_df$Education=='Left school at 18 years'] <- 'No College/University'
 main_df$Education[main_df$Education=='Some college or university, no certificate or degree'] <- 'Some College/University'
+main_df$Education[main_df$Education=="Professional certificate/ diploma"] <- "College Degree/Professional Certificate"
+main_df$Education[main_df$Education=="University degree"] <- "College Degree/Professional Certificate"
+main_df$Education[main_df$Education=="Masters degree"] <- "Masters/Doctorate Degree"
+main_df$Education[main_df$Education=="Doctorate degree"] <- "Masters/Doctorate Degree"
 
 #Reordering the features
 main_df <- 
   main_df |> 
-  mutate(Alcohol = factor(Alcohol,
-                              levels = c("Last Day", "Last Week", "Last Month", "Last Year", "Last Decade", "Over a Decade", "Never")),
-         
-         Amphet = factor(Amphet,
-                              levels = c("Last Day", "Last Week", "Last Month", "Last Year", "Last Decade", "Over a Decade", "Never")),
-                
-        Caff = factor(Caff,
-                              levels = c("Last Day", "Last Week", "Last Month", "Last Year", "Last Decade", "Over a Decade", "Never")),
-        
-        Cannabis = factor(Cannabis,
-                              levels = c("Last Day", "Last Week", "Last Month", "Last Year", "Last Decade", "Over a Decade", "Never")),
-
-        Coke = factor(Coke,
-                              levels = c("Last Day", "Last Week", "Last Month", "Last Year", "Last Decade", "Over a Decade", "Never")),
-
-        Crack = factor(Crack,
-                              levels = c("Last Day", "Last Week", "Last Month", "Last Year", "Last Decade", "Over a Decade", "Never")),
-        Heroin = factor(Heroin,
-                              levels = c("Last Day", "Last Week", "Last Month", "Last Year", "Last Decade", "Over a Decade", "Never")),
-        Ketamine = factor(Ketamine,
-                              levels = c("Last Day", "Last Week", "Last Month", "Last Year", "Last Decade", "Over a Decade", "Never")),
-        LSD = factor(LSD,
+  mutate(Heroin = factor(Heroin,
                               levels = c("Last Day", "Last Week", "Last Month", "Last Year", "Last Decade", "Over a Decade", "Never")),
         Meth = factor(Meth,
                               levels = c("Last Day", "Last Week", "Last Month", "Last Year", "Last Decade", "Over a Decade", "Never")),
-        Mushrooms = factor(Mushrooms,
-                              levels = c("Last Day", "Last Week", "Last Month", "Last Year", "Last Decade", "Over a Decade", "Never")),
-        Nicotine = factor(Nicotine,
-                              levels = c("Last Day", "Last Week", "Last Month", "Last Year", "Last Decade", "Over a Decade", "Never")),
         Education = factor(Education,
-                              levels = c("No College/University", "Some College/University", "Professional certificate/ diploma", "University degree", "Masters degree", "Doctorate degree")))
+                              levels = c("No College/University", "Some College/University", "College Degree/Professional Certificate", "Masters/Doctorate Degree")))
 
 
+#Squashing Higher Ages
+main_df$Age[main_df$Age=="55-64"|main_df$Age=="65+"] <- "55+"
 
 head(main_df)
+sjPlot::view_df(main_df,
+ show.frq = T,
+ show.prc = T,
+ show.na = T,
+ show.string.values = T)
 ```
 
 
 ## Data Summary
 We are interested in initially looking at the association between age and certain types of drug use as well as personality traits and drug use. From there we are interested at looking at the associations between these controlling for education level. These are some of our initial data summaries:
 
-### Distribution of Ages
+### Distribution of Ages and Education
 ```{r}
-#plot counts
-# ggplot(main_df, aes(x=factor(Age)))+
-#   geom_bar(width=0.7, fill="steelblue")+
-#   theme_minimal()+
-#   xlab("Age") + ylab("Count")
-
-
 #plot props
 age_prop <- main_df |>
   group_by(Age) |>
@@ -240,10 +131,24 @@ age_prop <- main_df |>
   ungroup() |>
   mutate(prop = n/sum(n))
 
-ggplot(age_prop, aes(x=Age, y=prop))+
+edu_prop <- main_df |>
+  group_by(Education) |>
+  count(Education) |>
+  ungroup() |>
+  mutate(prop = n/sum(n))
+
+age_dist <- ggplot(age_prop, aes(x=Age, y=prop))+
   geom_bar(stat="identity", width=0.7, fill="steelblue")+
   theme_minimal()+
   xlab("Age") + ylab("Proportion")
+
+edu_dist <- ggplot(edu_prop, aes(x=Education, y=prop))+
+  geom_bar(stat="identity", width=0.7, fill="steelblue")+
+  theme_minimal()+
+  xlab("Education") + ylab("Proportion")+
+  theme(axis.text.x = element_text(angle = 10, vjust=.9))
+
+grid.arrange(age_dist,edu_dist,nrow=1)
   
 ```
 <br/>The distribution of ages is heavily skewed right with the majority of the data consisting of those younger than 45. The amount of data in the youngest bracket is the largest with the amount tailing off as age brackets increase.
@@ -254,58 +159,67 @@ ggplot(age_prop, aes(x=Age, y=prop))+
 #Heroin
 Age_Heroin_prop<-data.frame(prop.table(xtabs(data = main_df, ~Heroin+Age),margin="Age"))
 Age_Heroin_prop
-# ggplot(data = Age_Heroin_prop,
-#        mapping = aes(Age)) +
-#   geom_bar(aes(fill = Heroin),
-#            position = "dodge")
 
-ggplot(Age_Heroin_prop, aes(x=Age,y=Freq, fill=Heroin))+
+age_h_plt <- ggplot(Age_Heroin_prop, aes(x=Age,y=Freq, fill=Heroin))+
   geom_col()
 
 
 #Methamphetamines
-ggplot(data = main_df,
-       mapping = aes(Age, ..count..)) +
-  geom_bar(aes(fill = Meth),
-           position = "dodge")
+Age_Meth_prop<-data.frame(prop.table(xtabs(data = main_df, ~Meth+Age),margin="Age"))
+Age_Meth_prop
 
+age_m_plt <- ggplot(Age_Meth_prop, aes(x=Age,y=Freq, fill=Meth))+
+  geom_col()
+
+grid.arrange(age_h_plt,age_m_plt,nrow=1)
 ```
-<br/>From an initial analysis it looks like across the board it is generally younger people trying and actively using different drugs with smaller amounts but larger proportions of middle aged people reporting different use consistently more around past usage when they were younger. From here we will examine the associations further and later include education into our analysis.
+<br/>
+From an initial analysis of the relationship of Age with Usage there seem to be some interesting patterns. In regards to Heroin it looks there is a pretty even distribution across the age ranges under 55, however there is much more recent use, within the last year, among younger age brackets whereas the use among the higher brackets is largely within the last decade or over a decade ago. In regards to Meth we see a different story with their being a larger proportion of those within younger age brackets using or have used compated to those within the older age brackets.
 
 ### Usage by Education
 ```{r drugs by education}
 # Heroin
-ggplot(data = main_df,
-       mapping = aes(Education, ..count..)) +
-  geom_bar(aes(fill = Heroin),
-           position = "dodge")
+Edu_Heroin_prop<-data.frame(prop.table(xtabs(data = main_df, ~Heroin+Education),margin="Education"))
+Edu_Heroin_prop
+
+edu_h_plt <- ggplot(Edu_Heroin_prop, aes(x=Education,y=Freq, fill=Heroin))+
+  geom_col()+
+  theme(axis.text.x = element_text(angle = 10, vjust=.9))
 
 # Meth
-ggplot(data = main_df,
-       mapping = aes(Education, ..count..)) +
-  geom_bar(aes(fill = Meth),
-           position = "dodge")
+Edu_Meth_prop<-data.frame(prop.table(xtabs(data = main_df, ~Meth+Education),margin="Education"))
+Edu_Meth_prop
+
+edu_m_plt <- ggplot(Edu_Meth_prop, aes(x=Education,y=Freq, fill=Meth))+
+  geom_col()+
+  theme(axis.text.x = element_text(angle = 10, vjust=.9))
+
+grid.arrange(edu_h_plt,edu_m_plt,nrow=1)
 
 ```
-
+<br/>
+From an initial analysis on Education and Usage we a bit more variation amongst the groups however there is a noticeable trend with the groups of those having not completed college or some form of higher education having a larger proportion of usage.
+<br/>
 ## Examining Initial Relationships (Tests for Two Variables)
-
+We will now examine the statistical relationships between Usage, Age, and Education starting with simple tests of association between the Age and Education in relation to the usage of these drugs.
+<br/>
 ### Heroin by Age
 ```{r Heroin by Age}
-# By Age
+#reducing heroin usage to whether an individual has used or not
 heroin_used_df <- main_df |>
-  select(Age,Education,Country,Nscore,Escore,Impulsive,Heroin)
+  select(-Meth) |>
+  mutate(Heroin=ifelse(Heroin=='Never','Never Used','Has Used'))
 
-heroin_used_df$Heroin = ifelse(heroin_used_df$Heroin=='Never','Never Used','Has Used')
-
-ggplot(data = heroin_used_df,
-       mapping = aes(Heroin, ..count..)) +
-  geom_bar(aes(fill = Age),
-           position = "dodge")
-
+#getting counts for each group of heroin by age
 heroin_age_freq <-
   xtabs(formula = ~ Age + Heroin,
         data = heroin_used_df) 
+
+#visualization of marginal proportions
+ggplot(data.frame(prop.table(heroin_age_freq, margin = "Age")), aes(x=Age,y=Freq, fill=Heroin))+
+  geom_col(position = "dodge")
+
+#creating df of marginal props for Chi-squared test
 heroin_age_freq |> 
   # Convert counts to conditional proportions
   prop.table(margin = "Age") |> 
@@ -313,24 +227,29 @@ heroin_age_freq |>
   signif(digits = 3) |> 
   # Convert to a data frame
   data.frame() |> 
-  # Changing drive_end from 1 column to a column per way the drive ends
   pivot_wider(names_from = "Heroin",
               values_from = "Freq")
 
+#testing association
 chisq_test(x=heroin_age_freq)
 cramerV(heroin_age_freq,
         ci = T,
         conf = 0.95)
 ```
-```{r Heroin by Education}
-ggplot(data = heroin_used_df,
-       mapping = aes(Heroin, ..count..)) +
-  geom_bar(aes(fill = Education),
-           position = "dodge")
+We can see from the initial graph there is not that much difference between the groups when we reduce the used or not. This is isn't unexpected from our initial exploration. Further the results of the Chi-square test returned a p-value of 0.78 which would lead us to failing to reject the null hypothesis of the test and conclude that there is not a significant association between Heroin usage and Age.
 
+### Heroin by Education
+```{r Heroin by Education}
+#getting counts for each group of heroin by education
 heroin_edu_freq <-
   xtabs(formula = ~ Education + Heroin,
         data = heroin_used_df) 
+
+#visualization of marginal proportions
+ggplot(data.frame(prop.table(heroin_edu_freq, margin = "Education")), aes(x=Education,y=Freq, fill=Heroin))+
+  geom_col(position = "dodge")
+
+#creating df of marginal props for Chi-squared test
 heroin_edu_freq |> 
   # Convert counts to conditional proportions
   prop.table(margin = "Education") |> 
@@ -338,31 +257,38 @@ heroin_edu_freq |>
   signif(digits = 3) |> 
   # Convert to a data frame
   data.frame() |> 
-  # Changing drive_end from 1 column to a column per way the drive ends
   pivot_wider(names_from = "Heroin",
               values_from = "Freq")
 
+#testing association
 chisq_test(x=heroin_edu_freq)
 cramerV(heroin_edu_freq,
         ci = T,
         conf = 0.95)
 ```
+The initial graph for Education and Heroin however shows a bit more variation among the groups. When we run the Chi-square test we can see that the resulting p-value is very small which would lead us to rejecting the null hypothesis and concluding that there is a significant association between Education and Heroin usage.
+
 
 ### Meth by Age
 ```{r Meth by Age}
 meth_used_df <- main_df |>
-  select(Age,Education,Country,Nscore,Escore,Impulsive,Meth)
+  select(-Heroin) |>
+  mutate(Meth=ifelse(Meth=='Never','Never Used','Has Used'))
 
-meth_used_df$Meth = ifelse(meth_used_df$Meth=='Never','Never Used','Has Used')
+#meth_used_df$Meth = ifelse(meth_used_df$Meth=='Never','Never Used','Has Used')
 
-ggplot(data = meth_used_df,
-       mapping = aes(Meth, ..count..)) +
-  geom_bar(aes(fill = Age),
-           position = "dodge")
+# ggplot(data = meth_used_df,
+#        mapping = aes(Meth, ..count..)) +
+#   geom_bar(aes(fill = Age),
+#            position = "dodge")
 
 meth_age_freq <-
   xtabs(formula = ~ Age + Meth,
         data = meth_used_df) 
+
+ggplot(data.frame(prop.table(meth_age_freq, margin = "Age")), aes(x=Age,y=Freq, fill=Meth))+
+  geom_col(position = "dodge")
+
 meth_age_freq |> 
   # Convert counts to conditional proportions
   prop.table(margin = "Age") |> 
@@ -379,15 +305,21 @@ cramerV(meth_age_freq,
         ci = T,
         conf = 0.95)
 ```
+
+### Meth by Education
 ```{r Meth by Education}
-ggplot(data = meth_used_df,
-       mapping = aes(Meth, ..count..)) +
-  geom_bar(aes(fill = Education),
-           position = "dodge")
+# ggplot(data = meth_used_df,
+#        mapping = aes(Meth, ..count..)) +
+#   geom_bar(aes(fill = Education),
+#            position = "dodge")
 
 meth_edu_freq <-
   xtabs(formula = ~ Education + Meth,
         data = meth_used_df)
+
+ggplot(data.frame(prop.table(meth_edu_freq, margin = "Education")), aes(x=Education,y=Freq, fill=Meth))+
+  geom_col(position = "dodge")
+
 meth_edu_freq |> 
   # Convert counts to conditional proportions
   prop.table(margin = "Education") |> 
@@ -404,12 +336,12 @@ cramerV(meth_edu_freq,
         ci = T,
         conf = 0.95)
 ```
+Looking at the results for Meth we can see from the initial visualization that there definitely seems to be some noticeable variation between the groups when looking at both Age and Education. In both instances the p-values were small enough to lead us to rejecting the null hypothesis and concluding that there are significant associations between both of these variables and Meth usage.
 
 ## Examining More Complicated Relationships (Tests for Multiple Variables)
-Looking more heavily at Drug Use, Age, and Education.
+After doing our initial analysis we will now dive a little deeper into the usage of these drugs and examine the more complicated relationships between the combination of Age and Education in relation to Usage instead of looking at them separately.
 
 ### Heroin
-
 #### Complete Independence
 ```{r Heroin Complete Independence}
 #Getting Counts and Expected Proportions
@@ -605,14 +537,16 @@ cond_ind_test_Her
 
 
 
-df<- (I*J*K) - 1 -((I + J -1)*K) - 1
 
+df<- (I*J*K) - 1 -((I + J -1)*K) - 1
 
 
 # P-value:
 pchisq(q = cond_ind_test_Her,
        df = df,
        lower = F)
+       
+      With a p-value >.05, we fail to reject the null hypothesis and conclude in favor of the null hypothesis. We do not have strong evidence that the odds ratios for heroin use by age at different levels of education are unequal, and none are equal to one.
 ```
 With a test statistic of 12.495 and 8 degrees of freedom the resulting P-value is .130. With a P-value > .05 we fail to reject our null hypothesis that the relationship between Age and Heroin use is conditional on Education level, and conclude that the relationship between Age and Heroin use could be conditionally dependent on Education level.
 
@@ -632,7 +566,7 @@ There is one expected count below 5, but all the other counts pass the check
 #### Homogenous Test
 ```{r Homogenous Test}
 #make education variable binary so we can run homogenous test
-heroin_used_df <- mutate(heroin_used_df, college= ifelse(Education %in% c("Doctorate degree","Masters degree","Professional certificate/ diploma","University degree"), "Graduated", "Didn't Graduate"))
+heroin_used_df <- mutate(heroin_used_df, college= ifelse(Education %in% c("Masters/Doctorate Degree","College Degree/Professional Certificate"), "Graduated", "Didn't Graduate"))
        
 #run Chi square test to first test for association between age and education
 
@@ -640,7 +574,7 @@ chisq_test(x = heroin_used_df$Age,
            y = heroin_used_df$college)
 
 temp_df <- filter(heroin_used_df,Age!="65+") 
-#run Breslow Day test for association between age and education at different levels of drugs
+#run Breslow Day test for association between heroin use and age at different levels of education
 drug_data_BDtest <- 
   xtabs(formula = ~ Heroin + college + Age,
         data = temp_df) |> 
@@ -648,6 +582,8 @@ drug_data_BDtest <-
   BreslowDayTest()
 
 drug_data_BDtest
+
+We fail to reject the null and conclude we do not have strong evidence in favor of the alternative. We do not have strong evidence that the odds ratios for heroin use by age at different levels of education are unequal.
 ```
 
 <!-- !!!Dont use chunk!!! -->
@@ -905,6 +841,7 @@ df<-(I*J*K) - 1 -((I + J -1)*K) - 1
 pchisq(q = cond_ind_test_Meth,
        df = df,
        lower = F)
+ With a p-value <.05, we reject the null hypothesis and conclude in favor of the alternative hypothesis. We have strong evidence that the odds ratios for meth use by age at different levels of education are unequal, and none are equal to one.
 ```
 With a test statistic of 42.379 and 8 degrees of freedom the resulting P-value is ~0. With a P-value < .05 we reject our null hypothesis that the relationship between age and Heroin use is conditional on education level.
 
@@ -932,7 +869,7 @@ chisq_test(x = meth_used_df$Age,
            y = meth_used_df$college)
 
 temp_df <- filter(meth_used_df,Age!="65+") 
-#run Breslow Day test for association between age and education at different levels of drugs
+#run Breslow Day test for association between drug use and age at different levels of education
 drug_data_BDtest <- 
   xtabs(formula = ~ Meth + college + Age,
         data = temp_df) |> 
@@ -941,4 +878,155 @@ drug_data_BDtest <-
 
 drug_data_BDtest
 
+
+# After running the Breslow Day Test, we computed a chi-squared value of 3.347, and a p-value of .5015. We fail to reject the null and conclude we do not have strong evidence in favor of the alternative. We do not have strong evidence that the odds ratios for meth use by age at different levels of education are unequal.
+
+```
+
+```
+
+
+### Logistic Regression - Looking at Meth Use
+
+```{r reclassify Heroin use}
+# 0 = Never used, 1 = Has used
+meth_log_reg <- meth_used_df |>
+  mutate(use = ifelse(Meth=="Never Used",0,1)) |>
+  select(-Meth)
+```
+
+#### Looking at How Age and Education Affect Meth Use
+```{r}
+add_model <- 
+  glm(formula = use ~ Age + Education,
+      #weight = ?,
+      family = binomial,
+      data = meth_log_reg)
+
+int_model <- 
+  glm(formula = use ~ Age * Education,
+      #weight = ?,
+      family = binomial,
+      data = meth_log_reg)
+
+fit_stats <- 
+  bind_rows(
+    "add" = glance(add_model),
+    "int" = glance(int_model),
+    .id = "model"
+    )
+
+fit_stats
+
+c("test stat" = fit_stats$deviance |> diff() |> abs(),
+  "p-value" = pchisq(q = fit_stats$deviance |> diff() |> abs(),
+                     df = fit_stats$df.residual |> diff() |> abs(),
+                     lower = F))
+
+age_model <- 
+  glm(formula = use ~ Age,
+      #weight = ?,
+      family = binomial,
+      data = meth_log_reg)
+
+# Now we can use anova just by giving it multiple models from simplest to the most complicated:
+anova(age_model, add_model, int_model, 
+      test = "LRT")
+```
+
+
+#### Stepwise Model Selection
+```{r stepwise model selection}
+min_model <- 
+  glm(formula = use ~ 1,  # 1 means intercept only
+      family = binomial,
+      data = meth_log_reg)
+max_model <- 
+  glm(formula = use ~ .,
+      family = binomial,
+      data = meth_log_reg)
+
+#Forward Selection of features
+forward_glm <- 
+  MASS::stepAIC(object = min_model,
+                direction = "forward",
+                scope = formula(max_model),
+                trace = 0)
+
+#Backward Selection of features
+backward_glm <- 
+  MASS::stepAIC(object = min_model,
+                direction = "forward",
+                scope = formula(max_model),
+                trace = 0)
+
+#Results from forward, backward, and both selection
+both_glm <- 
+  MASS::stepAIC(object = min_model,
+                direction = "both",
+                scope = formula(max_model),
+                trace = 0)
+
+c("forward"  = forward_glm$formula,
+  "backward" = backward_glm$formula,
+  "both"     = both_glm$formula)
+```
+
+```{r}
+#suggested model
+sugg_model <- glm(formula = use ~ Country + Cscore + Education + Oscore + AScore + Nscore + 
+    Impulsive + Escore,
+      family = binomial,
+      data = meth_log_reg)
+
+summary(sugg_model)
+anova(sugg_model)
+
+predictions <- predict(sugg_model,
+        newdata = meth_log_reg, 
+        type = "response") |> 
+  
+  round(digits = 3) #|> 
+  
+  #data.frame()
+
+pred_df <- meth_log_reg |>
+  mutate(pred_used = ifelse(predictions>.5,1,0),
+         correct_pred = ifelse(use==pred_used,1,0))
+head(pred_df,15)
+
+#overall accuracy
+model_acc <- sum(pred_df$correct_pred)/length(pred_df$correct_pred)
+model_acc
+
+#accuracy predicting use
+aggregate(correct_pred~use,data=pred_df,FUN = sum)
+correct_use_pred = 195
+total_num_use = sum(pred_df$use==1)
+correct_pred_acc = correct_use_pred/total_num_use
+correct_pred_acc
+
+```
+
+
+
+#### Multinomial Regression
+```{r}
+#using full recommended
+# meth_use_nnet <- multinom(use ~ Country + Impulsive + Age + Nscore + Education + Oscore + 
+#     AScore + Cscore, 
+#                           data = meth_log_reg)
+meth_use_nnet <- multinom(use ~ Impulsive + Nscore + Oscore + AScore + Cscore, 
+                          data = meth_log_reg)
+
+tidy(meth_use_nnet)
+glance(meth_use_nnet)
+
+predict(meth_use_nnet,
+        newdata = meth_used_df, 
+        type = "probs") |> 
+  
+  round(digits = 3) |> 
+  
+  data.frame()
 ```
