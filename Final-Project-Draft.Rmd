@@ -120,7 +120,7 @@ sjPlot::view_df(main_df,
 
 
 ## Data Summary
-We are interested in initially looking at the association between age and certain types of drug use as well as personality traits and drug use. From there we are interested at looking at the associations between these controlling for education level. These are some of our inital data summaries:
+We are interested in initially looking at the association between age and certain types of drug use as well as personality traits and drug use. From there we are interested at looking at the associations between these controlling for education level. These are some of our initial data summaries:
 
 ### Distribution of Ages and Education
 ```{r}
@@ -503,35 +503,43 @@ std_residuals(JI_vs_FA) |>
 #### Conditional Independence
 ```{r Cond Ind test Heroin }
 
+
+
+
 drug_data <- mutate(drug_data, has_used_Heroin = ifelse(Heroin == "CL0", "Never", "Used"))
-drug_data <- mutate(drug_data, college= ifelse(Education %in% c("Doctorate degree","Masters degree","Professional certificate/ diploma","University degree"), "Graduated", "Didn't Graduate"))
 
-drug_data_ex_old <- filter(drug_data, Age != "65+")
+drug_data_comb_old <- mutate(drug_data, Age = ifelse(Age == "65+","55-64",Age))
 
-xtabs(formula = ~ has_used_Heroin + Education + Age,
-      data = drug_data_ex_old) |> 
-  ftable()
+drug_data_test <- mutate(drug_data_comb_old, college= ifelse(Education %in% c("Left school at 18 years","Left school at 17 years","Left school at 16 years","Left school before 16 years"), "No College", Education))|>
+  mutate(college= ifelse(Education == "Some college or university, no certificate or degree","Some College",college))|>
+  mutate(college= ifelse(Education %in% c("Doctorate degree","Masters degree","Professional certificate/ diploma","University degree"), "Graduated", college))
+
+I <- n_distinct(drug_data_test$college)
+J <- n_distinct(drug_data_test$has_used_Heroin)
+K <- n_distinct(drug_data_test$Age)
+
 
 partial_chisq_tests_Her <- 
-  drug_data_ex_old |>
+  drug_data_comb_old |>
   # Group by the control variable, Z
   
-  group_by(Education) |> 
+  group_by(college) |> 
   
   # Calculating the test statistic, df, and p-value for each individual partial table
   summarize(test_stat = chisq_test(has_used_Heroin, Age)$statistic,
             df = chisq_test(has_used_Heroin, Age)$df,
             p_val = chisq_test(has_used_Heroin, Age)$p)
 
-partial_chisq_tests_Her 
 
 cond_ind_test_Her <- partial_chisq_tests_Her$test_stat |> sum()
+
 cond_ind_test_Her
 
-##IJK - 1 -(I + J -1)K - 1
 
-#df<- ((2)*(9)*4 )-((2+9-1)*4)-2
-df <- (I*J*K)-1-((I+J-1)*K)-1
+
+
+df<- (I*J*K) - 1 -((I + J -1)*K) - 1
+
 
 # P-value:
 pchisq(q = cond_ind_test_Her,
@@ -540,14 +548,20 @@ pchisq(q = cond_ind_test_Her,
        
       With a p-value >.05, we fail to reject the null hypothesis and conclude in favor of the null hypothesis. We do not have strong evidence that the odds ratios for heroin use by age at different levels of education are unequal, and none are equal to one.
 ```
+With a test statistic of 12.495 and 8 degrees of freedom the resulting P-value is .130. With a P-value > .05 we fail to reject our null hypothesis that the relationship between Age and Heroin use is conditional on Education level, and conclude that the relationship between Age and Heroin use could be conditionally dependent on Education level.
+
+
+
 ##### Expected values check
 ```{r}
-drug_data_ex_old |> 
+drug_data_test |> 
   group_by(Age) |> 
   
   summarize(below_5 = sum(chisq.test(has_used_Heroin, college)$expected <5))
 
 ```
+
+There is one expected count below 5, but all the other counts pass the check
 
 #### Homogenous Test
 ```{r Homogenous Test}
@@ -791,39 +805,37 @@ std_residuals(JI_vs_FA) |>
 ```
 
 ####Conditional Independence
-```{r conditional Ind Meth}
+```{r conditional Ind Meth, warning=FALSE}
+
+drug_data_comb_old <- mutate(drug_data_comb_old, has_used_Meth = ifelse(Meth == "CL0", "Never", "Used"))
 
 
-drug_data <- mutate(drug_data, has_used_Meth = ifelse(Meth == "CL0", "Never", "Used"))
 
-##drug_data <- mutate(drug_data, college= ifelse(Education %in% c("Doctorate degree","Masters degree","Professional certificate/ diploma","University degree"), "Graduated", "Didn't Graduate"))
+drug_data_test <- mutate(drug_data_comb_old, college= ifelse(Education %in% c("Left school at 18 years","Left school at 17 years","Left school at 16 years","Left school before 16 years"), "No College", Education))|>
+  mutate(college= ifelse(Education == "Some college or university, no certificate or degree","Some College",college))|>
+  mutate(college= ifelse(Education %in% c("Doctorate degree","Masters degree","Professional certificate/ diploma","University degree"), "Graduated", college))
 
-drug_data_ex_old <- filter(drug_data, Age != "65+")
-
-xtabs(formula = ~ has_used_Meth + Age + Education,
-      data = drug_data_ex_old) |> 
-  ftable()
+I <- n_distinct(drug_data_test$college)
+J <- n_distinct(drug_data_test$has_used_Meth)
+K <- n_distinct(drug_data_test$Age)
+  
 
 partial_chisq_tests_Meth <- 
-  drug_data_ex_old |>
+  drug_data_test |>
   # Group by the control variable, Z
   
-  group_by(Education) |> 
+  group_by(college) |> 
   
   # Calculating the test statistic, df, and p-value for each individual partial table
   summarize(test_stat = chisq_test(has_used_Meth, Age)$statistic,
             df = chisq_test(has_used_Meth, Age)$df,
             p_val = chisq_test(has_used_Meth, Age)$p)
 
-partial_chisq_tests_Meth 
 
 cond_ind_test_Meth <- partial_chisq_tests_Meth$test_stat |> sum()
 cond_ind_test_Meth
 
-##IJK - 1 -(I + J -1)K - 1
-
-df<-((2)*(9)*4 )-((2+9-1)*4)-2
-
+df<-(I*J*K) - 1 -((I + J -1)*K) - 1
 
 # P-value:
 pchisq(q = cond_ind_test_Meth,
@@ -831,13 +843,20 @@ pchisq(q = cond_ind_test_Meth,
        lower = F)
  With a p-value <.05, we reject the null hypothesis and conclude in favor of the alternative hypothesis. We have strong evidence that the odds ratios for meth use by age at different levels of education are unequal, and none are equal to one.
 ```
+With a test statistic of 42.379 and 8 degrees of freedom the resulting P-value is ~0. With a P-value < .05 we reject our null hypothesis that the relationship between age and Heroin use is conditional on education level.
+
+
 ##### Expected value check
-```{r}
-drug_data |> 
+```{r warning=TRUE}
+
+
+drug_data_ex_old |> 
   group_by(Age) |> 
   
   summarize(below_5 = sum(chisq.test(has_used_Meth, college)$expected <5))
 ```
+
+There is one expected count below 5, but all the other counts pass the check
 
 #### Homogenous Test
 ```{r Homogenous test}
