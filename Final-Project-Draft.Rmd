@@ -911,11 +911,11 @@ anova(age_model, add_model, int_model,
 min_model <- 
   glm(formula = use ~ 1,  # 1 means intercept only
       family = binomial,
-      data = heroin_log_reg)
+      data = meth_log_reg)
 max_model <- 
   glm(formula = use ~ .,
       family = binomial,
-      data = heroin_log_reg)
+      data = meth_log_reg)
 
 #Forward Selection of features
 forward_glm <- 
@@ -943,5 +943,54 @@ c("forward"  = forward_glm$formula,
   "both"     = both_glm$formula)
 ```
 
+```{r}
+#suggested model
+sugg_model <- glm(formula = use ~ Country + Cscore + Education + Oscore + AScore + Nscore + 
+    Impulsive + Escore,
+      family = binomial,
+      data = meth_log_reg)
 
+summary(sugg_model)
+anova(sugg_model)
+
+predictions <- predict(sugg_model,
+        newdata = meth_log_reg, 
+        type = "response") |> 
+  
+  round(digits = 3) #|> 
+  
+  #data.frame()
+
+pred_df <- meth_log_reg |>
+  mutate(pred_used = ifelse(predictions>.5,1,0))
+head(pred_df,15)
+
+model_acc <- sum(pred_df$pred_used)/length(pred_df$pred_used)
+model_acc
+```
+
+
+
+#### Multinomial Regression
+##### Meth
+```{r}
+#using full recommended
+# meth_use_nnet <- multinom(use ~ Country + Impulsive + Age + Nscore + Education + Oscore + 
+#     AScore + Cscore, 
+#                           data = meth_log_reg)
+meth_use_nnet <- multinom(Meth ~ Impulsive + Nscore + Oscore + 
+    AScore + Cscore, 
+                          data = meth_used_df)
+
+tidy(meth_use_nnet)
+glance(meth_use_nnet)
+
+predict(meth_use_nnet,
+        newdata = meth_used_df, 
+        type = "probs") |> 
+  
+  round(digits = 3) |> 
+  
+  data.frame()
+```
 
