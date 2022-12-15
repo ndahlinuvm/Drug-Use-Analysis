@@ -976,20 +976,19 @@ correct_use_pred = 195
 total_num_use = sum(pred_df$use==1)
 correct_pred_acc = correct_use_pred/total_num_use
 correct_pred_acc
+
 ```
 
 
 
 #### Multinomial Regression
-##### Meth
 ```{r}
 #using full recommended
 # meth_use_nnet <- multinom(use ~ Country + Impulsive + Age + Nscore + Education + Oscore + 
 #     AScore + Cscore, 
 #                           data = meth_log_reg)
-meth_use_nnet <- multinom(Meth ~ Impulsive + Nscore + Oscore + 
-    AScore + Cscore, 
-                          data = meth_used_df)
+meth_use_nnet <- multinom(use ~ Impulsive + Nscore + Oscore + AScore + Cscore, 
+                          data = meth_log_reg)
 
 tidy(meth_use_nnet)
 glance(meth_use_nnet)
