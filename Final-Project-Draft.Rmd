@@ -503,32 +503,30 @@ std_residuals(JI_vs_FA) |>
 #### Conditional Independence
 ```{r Cond Ind test Heroin }
 
+# drug_data <- mutate(drug_data, has_used_Heroin = ifelse(Heroin == "CL0", "Never", "Used"))
+# 
+# drug_data_comb_old <- mutate(drug_data, Age = ifelse(Age == "65+","55-64",Age))
+# 
+# drug_data_test <- mutate(drug_data_comb_old, college= ifelse(Education %in% c("Left school at 18 years","Left school at 17 years","Left school at 16 years","Left school before 16 years"), "No College", Education))|>
+#   mutate(college= ifelse(Education == "Some college or university, no certificate or degree","Some College",college))|>
+#   mutate(college= ifelse(Education %in% c("Doctorate degree","Masters degree","Professional certificate/ diploma","University degree"), "Graduated", college))
 
 
-
-drug_data <- mutate(drug_data, has_used_Heroin = ifelse(Heroin == "CL0", "Never", "Used"))
-
-drug_data_comb_old <- mutate(drug_data, Age = ifelse(Age == "65+","55-64",Age))
-
-drug_data_test <- mutate(drug_data_comb_old, college= ifelse(Education %in% c("Left school at 18 years","Left school at 17 years","Left school at 16 years","Left school before 16 years"), "No College", Education))|>
-  mutate(college= ifelse(Education == "Some college or university, no certificate or degree","Some College",college))|>
-  mutate(college= ifelse(Education %in% c("Doctorate degree","Masters degree","Professional certificate/ diploma","University degree"), "Graduated", college))
-
-I <- n_distinct(drug_data_test$college)
-J <- n_distinct(drug_data_test$has_used_Heroin)
-K <- n_distinct(drug_data_test$Age)
+I <- n_distinct(heroin_used_df$Education)
+J <- n_distinct(heroin_used_df$Heroin)
+K <- n_distinct(heroin_used_df$Age)
 
 
 partial_chisq_tests_Her <- 
-  drug_data_comb_old |>
+  heroin_used_df |>
   # Group by the control variable, Z
   
-  group_by(college) |> 
+  group_by(Education) |> 
   
   # Calculating the test statistic, df, and p-value for each individual partial table
-  summarize(test_stat = chisq_test(has_used_Heroin, Age)$statistic,
-            df = chisq_test(has_used_Heroin, Age)$df,
-            p_val = chisq_test(has_used_Heroin, Age)$p)
+  summarize(test_stat = chisq_test(Heroin, Age)$statistic,
+            df = chisq_test(Heroin, Age)$df,
+            p_val = chisq_test(Heroin, Age)$p)
 
 
 cond_ind_test_Her <- partial_chisq_tests_Her$test_stat |> sum()
@@ -546,7 +544,6 @@ pchisq(q = cond_ind_test_Her,
        df = df,
        lower = F)
        
-
 ```
 With a test statistic of 12.495 and 8 degrees of freedom the resulting P-value is .130. With a P-value > .05 we fail to reject our null hypothesis that the relationship between Age and Heroin use is conditional on Education level, and conclude that the relationship between Age and Heroin use could be conditionally dependent on Education level.
 
@@ -554,10 +551,10 @@ With a test statistic of 12.495 and 8 degrees of freedom the resulting P-value i
 
 ##### Expected values check
 ```{r}
-drug_data_test |> 
+heroin_used_df |> 
   group_by(Age) |> 
   
-  summarize(below_5 = sum(chisq.test(has_used_Heroin, college)$expected <5))
+  summarize(below_5 = sum(chisq.test(Heroin, Education)$expected <5))
 
 ```
 
@@ -573,11 +570,11 @@ heroin_used_df <- mutate(heroin_used_df, college= ifelse(Education %in% c("Maste
 chisq_test(x = heroin_used_df$Age,
            y = heroin_used_df$college)
 
-temp_df <- filter(heroin_used_df,Age!="65+") 
+
 #run Breslow Day test for association between heroin use and age at different levels of education
 drug_data_BDtest <- 
   xtabs(formula = ~ Heroin + college + Age,
-        data = temp_df) |> 
+        data = heroin_used_df) |> 
   
   BreslowDayTest()
 
@@ -585,62 +582,6 @@ drug_data_BDtest
 
 ```
 We fail to reject the null and conclude we do not have strong evidence in favor of the alternative. We do not have strong evidence that the odds ratios for heroin use by age at different levels of education are unequal.
-
-<!-- !!!Dont use chunk!!! -->
-<!-- ```{r Heroin Conditional Independence} -->
-<!-- xtabs(formula = ~ Age + Heroin + Education, -->
-<!--       data = heroin_used_df) -->
-
-<!-- xtabs(formula = ~ Education + Age + Heroin, -->
-<!--       data = heroin_used_df) |>  -->
-<!--   ftable() -->
-
-<!-- #partial tests -->
-<!-- partial_chisq_tests <-  -->
-<!--   heroin_used_df |> -->
-<!--   # Group by the control variable, Z -->
-
-<!--   group_by(Education) |>  -->
-
-<!--   # Calculating the test statistic, df, and p-value for each individual partial table -->
-<!--   summarize(test_stat = chisq_test(Age, Heroin)$statistic, -->
-<!--             df = chisq_test(Age, Heroin)$df, -->
-<!--             p_val = chisq_test(Age, Heroin)$p) -->
-
-<!-- partial_chisq_tests  -->
-
-<!-- cond_ind_test <- partial_chisq_tests$test_stat |> sum() -->
-<!-- cond_ind_test -->
-
-<!-- # P-value: -->
-<!-- pchisq(q = cond_ind_test, -->
-<!--        df = 6, -->
-<!--        lower = F) -->
-
-<!-- # G Test -->
-<!-- library(DescTools) -->
-<!-- partial_G_tests <-  -->
-<!--   heroin_used_df |> -->
-<!--   # Group by the control variable, Z -->
-
-<!--   group_by(Education) |>  -->
-
-<!--   # Calculating the test statistic, df, and p-value for each individual partial table -->
-<!--   summarize(test_stat = GTest(Age, Heroin)$statistic, -->
-<!--             df = GTest(Age, Heroin)$parameter, -->
-<!--             p_val = GTest(Age, Heroin)$p.value) -->
-
-<!-- partial_G_tests  -->
-
-<!-- #(IJK)-1-(I+J-1)K-1 -->
-<!-- df=(2*6*5)-1-(2+6-1)*5-1 -->
-<!-- # test stat and p-value -->
-<!-- c(G = sum(partial_G_tests$test_stat), -->
-<!--   p_val = pchisq(q = sum(partial_G_tests$test_stat), -->
-<!--                  df = df, -->
-<!--                  lower = F)) -->
-<!-- ``` -->
-
 
 ### Meth
 Here we are comparing Meth and Age and Edu
@@ -806,30 +747,31 @@ std_residuals(JI_vs_FA) |>
 
 ####Conditional Independence
 ```{r conditional Ind Meth, warning=FALSE}
+# drug_data_comb_old <- mutate(drug_data_comb_old, has_used_Meth = ifelse(Meth == "CL0", "Never", "Used"))
+# 
+# 
+# 
+# drug_data_test <- mutate(drug_data_comb_old, college= ifelse(Education %in% c("Left school at 18 years","Left school at 17 years","Left school at 16 years","Left school before 16 years"), "No College", Education))|>
+#   mutate(college= ifelse(Education == "Some college or university, no certificate or degree","Some College",college))|>
+#   mutate(college= ifelse(Education %in% c("Doctorate degree","Masters degree","Professional certificate/ diploma","University degree"), "Graduated", college))
 
-drug_data_comb_old <- mutate(drug_data_comb_old, has_used_Meth = ifelse(Meth == "CL0", "Never", "Used"))
 
 
-
-drug_data_test <- mutate(drug_data_comb_old, college= ifelse(Education %in% c("Left school at 18 years","Left school at 17 years","Left school at 16 years","Left school before 16 years"), "No College", Education))|>
-  mutate(college= ifelse(Education == "Some college or university, no certificate or degree","Some College",college))|>
-  mutate(college= ifelse(Education %in% c("Doctorate degree","Masters degree","Professional certificate/ diploma","University degree"), "Graduated", college))
-
-I <- n_distinct(drug_data_test$college)
-J <- n_distinct(drug_data_test$has_used_Meth)
-K <- n_distinct(drug_data_test$Age)
+I <- n_distinct(meth_used_df$Education)
+J <- n_distinct(meth_used_df$Meth)
+K <- n_distinct(meth_used_df$Age)
   
 
 partial_chisq_tests_Meth <- 
-  drug_data_test |>
+  meth_used_df |>
   # Group by the control variable, Z
   
-  group_by(college) |> 
+  group_by(Education) |> 
   
   # Calculating the test statistic, df, and p-value for each individual partial table
-  summarize(test_stat = chisq_test(has_used_Meth, Age)$statistic,
-            df = chisq_test(has_used_Meth, Age)$df,
-            p_val = chisq_test(has_used_Meth, Age)$p)
+  summarize(test_stat = chisq_test(Meth, Age)$statistic,
+            df = chisq_test(Meth, Age)$df,
+            p_val = chisq_test(Meth, Age)$p)
 
 
 cond_ind_test_Meth <- partial_chisq_tests_Meth$test_stat |> sum()
@@ -846,14 +788,15 @@ pchisq(q = cond_ind_test_Meth,
 With a test statistic of 42.379 and 8 degrees of freedom the resulting P-value is ~0. With a P-value < .05 we reject our null hypothesis. We have strong evidence that the odds ratios for meth use by age at different levels of education are unequal.
 
 
+
 ##### Expected value check
 ```{r warning=TRUE}
 
 
-drug_data_ex_old |> 
+meth_used_df |> 
   group_by(Age) |> 
   
-  summarize(below_5 = sum(chisq.test(has_used_Meth, college)$expected <5))
+  summarize(below_5 = sum(chisq.test(Meth, Education)$expected <5))
 ```
 
 There is one expected count below 5, but all the other counts pass the check
@@ -861,18 +804,17 @@ There is one expected count below 5, but all the other counts pass the check
 #### Homogenous Test
 ```{r Homogenous test}
 #make education variable binary so we can run homogenous test
-meth_used_df <- mutate(meth_used_df, college= ifelse(Education %in% c("Doctorate degree","Masters degree","Professional certificate/ diploma","University degree"), "Graduated", "Didn't Graduate"))
+meth_used_df <- mutate(meth_used_df, college= ifelse(Education %in% c("Masters/Doctorate Degree","College Degree/Professional Certificate"), "Graduated", "Didn't Graduate"))
        
 #run Chi square test to first test for association between age and education
 
 chisq_test(x = meth_used_df$Age,
            y = meth_used_df$college)
 
-temp_df <- filter(meth_used_df,Age!="65+") 
 #run Breslow Day test for association between drug use and age at different levels of education
 drug_data_BDtest <- 
   xtabs(formula = ~ Meth + college + Age,
-        data = temp_df) |> 
+        data = meth_used_df) |> 
   
   BreslowDayTest()
 
@@ -887,8 +829,7 @@ After running the Breslow Day Test, we computed a chi-squared value of 3.347, an
 
 
 ### Logistic Regression - Looking at Meth Use
-
-```{r reclassify Heroin use}
+```{r reclassify meth use}
 # 0 = Never used, 1 = Has used
 meth_log_reg <- meth_used_df |>
   mutate(use = ifelse(Meth=="Never Used",0,1)) |>
@@ -1030,3 +971,8 @@ predict(meth_use_nnet,
   
   data.frame()
 ```
+
+
+## Conclusion
+<!-- Add overall conclusions for results below  -->
+
