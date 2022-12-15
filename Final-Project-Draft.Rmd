@@ -962,11 +962,20 @@ predictions <- predict(sugg_model,
   #data.frame()
 
 pred_df <- meth_log_reg |>
-  mutate(pred_used = ifelse(predictions>.5,1,0))
+  mutate(pred_used = ifelse(predictions>.5,1,0),
+         correct_pred = ifelse(use==pred_used,1,0))
 head(pred_df,15)
 
-model_acc <- sum(pred_df$pred_used)/length(pred_df$pred_used)
+#overall accuracy
+model_acc <- sum(pred_df$correct_pred)/length(pred_df$correct_pred)
 model_acc
+
+#accuracy predicting use
+aggregate(correct_pred~use,data=pred_df,FUN = sum)
+correct_use_pred = 195
+total_num_use = sum(pred_df$use==1)
+correct_pred_acc = correct_use_pred/total_num_use
+correct_pred_acc
 ```
 
 
