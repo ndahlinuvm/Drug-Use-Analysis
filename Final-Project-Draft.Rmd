@@ -544,7 +544,6 @@ pchisq(q = cond_ind_test_Her,
        df = df,
        lower = F)
        
-#With a p-value >.05, we fail to reject the null hypothesis and conclude in favor of the null hypothesis. We do not have strong evidence that the odds ratios for heroin use by age at different levels of education are unequal, and none are equal to one.
 ```
 With a test statistic of 12.495 and 8 degrees of freedom the resulting P-value is .130. With a P-value > .05 we fail to reject our null hypothesis that the relationship between Age and Heroin use is conditional on Education level, and conclude that the relationship between Age and Heroin use could be conditionally dependent on Education level.
 
@@ -580,7 +579,6 @@ drug_data_BDtest <-
   BreslowDayTest()
 
 drug_data_BDtest
-
 
 ```
 We fail to reject the null and conclude we do not have strong evidence in favor of the alternative. We do not have strong evidence that the odds ratios for heroin use by age at different levels of education are unequal.
@@ -785,9 +783,10 @@ df<-(I*J*K) - 1 -((I + J -1)*K) - 1
 pchisq(q = cond_ind_test_Meth,
        df = df,
        lower = F)
-#With a p-value <.05, we reject the null hypothesis and conclude in favor of the alternative hypothesis. We have strong evidence that the odds ratios for meth use by age at different levels of education are unequal, and none are equal to one.
+
 ```
-With a test statistic of 42.379 and 13 degrees of freedom the resulting P-value is ~0. With a P-value < .05 we reject our null hypothesis that the relationship between age and Heroin use is conditional on education level.
+With a test statistic of 42.379 and 8 degrees of freedom the resulting P-value is ~0. With a P-value < .05 we reject our null hypothesis. We have strong evidence that the odds ratios for meth use by age at different levels of education are unequal.
+
 
 
 ##### Expected value check
@@ -825,6 +824,8 @@ drug_data_BDtest
 # After running the Breslow Day Test, we computed a chi-squared value of 3.347, and a p-value of .5015. We fail to reject the null and conclude we do not have strong evidence in favor of the alternative. We do not have strong evidence that the odds ratios for meth use by age at different levels of education are unequal.
 
 ```
+After running the Breslow Day Test, we computed a chi-squared value of 3.347, and a p-value of .5015. We fail to reject the null and conclude we do not have strong evidence in favor of the alternative. We do not have strong evidence that the odds ratios for meth use by age at different levels of education are unequal.
+
 
 
 ### Logistic Regression - Looking at Meth Use
