@@ -787,7 +787,7 @@ pchisq(q = cond_ind_test_Meth,
        lower = F)
 #With a p-value <.05, we reject the null hypothesis and conclude in favor of the alternative hypothesis. We have strong evidence that the odds ratios for meth use by age at different levels of education are unequal, and none are equal to one.
 ```
-With a test statistic of 42.379 and 8 degrees of freedom the resulting P-value is ~0. With a P-value < .05 we reject our null hypothesis that the relationship between age and Heroin use is conditional on education level.
+With a test statistic of 42.379 and 13 degrees of freedom the resulting P-value is ~0. With a P-value < .05 we reject our null hypothesis that the relationship between age and Heroin use is conditional on education level.
 
 
 ##### Expected value check
@@ -970,3 +970,8 @@ predict(meth_use_nnet,
   
   data.frame()
 ```
+
+
+## Conclusion
+<!-- Add overall conclusions for results below  -->
+
