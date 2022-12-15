@@ -537,6 +537,8 @@ df <- (I*J*K)-1-((I+J-1)*K)-1
 pchisq(q = cond_ind_test_Her,
        df = df,
        lower = F)
+       
+      With a p-value >.05, we fail to reject the null hypothesis and conclude in favor of the null hypothesis. We do not have strong evidence that the odds ratios for heroin use by age at different levels of education are unequal, and none are equal to one.
 ```
 ##### Expected values check
 ```{r}
@@ -558,7 +560,7 @@ chisq_test(x = heroin_used_df$Age,
            y = heroin_used_df$college)
 
 temp_df <- filter(heroin_used_df,Age!="65+") 
-#run Breslow Day test for association between age and education at different levels of drugs
+#run Breslow Day test for association between heroin use and age at different levels of education
 drug_data_BDtest <- 
   xtabs(formula = ~ Heroin + college + Age,
         data = temp_df) |> 
@@ -566,6 +568,8 @@ drug_data_BDtest <-
   BreslowDayTest()
 
 drug_data_BDtest
+
+We fail to reject the null and conclude we do not have strong evidence in favor of the alternative. We do not have strong evidence that the odds ratios for heroin use by age at different levels of education are unequal.
 ```
 
 <!-- !!!Dont use chunk!!! -->
@@ -825,6 +829,7 @@ df<-((2)*(9)*4 )-((2+9-1)*4)-2
 pchisq(q = cond_ind_test_Meth,
        df = df,
        lower = F)
+ With a p-value <.05, we reject the null hypothesis and conclude in favor of the alternative hypothesis. We have strong evidence that the odds ratios for meth use by age at different levels of education are unequal, and none are equal to one.
 ```
 ##### Expected value check
 ```{r}
@@ -845,7 +850,7 @@ chisq_test(x = meth_used_df$Age,
            y = meth_used_df$college)
 
 temp_df <- filter(meth_used_df,Age!="65+") 
-#run Breslow Day test for association between age and education at different levels of drugs
+#run Breslow Day test for association between drug use and age at different levels of education
 drug_data_BDtest <- 
   xtabs(formula = ~ Meth + college + Age,
         data = temp_df) |> 
@@ -853,6 +858,11 @@ drug_data_BDtest <-
   BreslowDayTest()
 
 drug_data_BDtest
+
+
+# After running the Breslow Day Test, we computed a chi-squared value of 3.347, and a p-value of .5015. We fail to reject the null and conclude we do not have strong evidence in favor of the alternative. We do not have strong evidence that the odds ratios for meth use by age at different levels of education are unequal.
+
+```
 
 ```
 
@@ -1001,4 +1011,3 @@ predict(meth_use_nnet,
   
   data.frame()
 ```
-
