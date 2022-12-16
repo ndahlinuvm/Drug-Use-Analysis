@@ -66,7 +66,7 @@ sjPlot::view_df(main_df,
  show.string.values = T)
 ```
 
-```{r reclassify drug use and education and reorganize}
+```{r reclassify drug use and education and reorganize, include=FALSE}
 #Heroin
 main_df$Heroin[main_df$Heroin=='CL0'] <- 'Never'
 main_df$Heroin[main_df$Heroin=='CL1'] <- 'Over a Decade'
@@ -158,7 +158,7 @@ grid.arrange(age_dist,edu_dist,nrow=1)
 ```{r heavier drug use by age, echo=FALSE}
 #Heroin
 Age_Heroin_prop<-data.frame(prop.table(xtabs(data = main_df, ~Heroin+Age),margin="Age"))
-Age_Heroin_prop
+
 
 age_h_plt <- ggplot(Age_Heroin_prop, aes(x=Age,y=Freq, fill=Heroin))+
   geom_col()
@@ -166,7 +166,7 @@ age_h_plt <- ggplot(Age_Heroin_prop, aes(x=Age,y=Freq, fill=Heroin))+
 
 #Methamphetamines
 Age_Meth_prop<-data.frame(prop.table(xtabs(data = main_df, ~Meth+Age),margin="Age"))
-Age_Meth_prop
+
 
 age_m_plt <- ggplot(Age_Meth_prop, aes(x=Age,y=Freq, fill=Meth))+
   geom_col()
@@ -180,7 +180,7 @@ From an initial analysis of the relationship of Age with Usage there seem to be 
 ```{r drugs by education}
 # Heroin
 Edu_Heroin_prop<-data.frame(prop.table(xtabs(data = main_df, ~Heroin+Education),margin="Education"))
-Edu_Heroin_prop
+
 
 edu_h_plt <- ggplot(Edu_Heroin_prop, aes(x=Education,y=Freq, fill=Heroin))+
   geom_col()+
@@ -188,7 +188,7 @@ edu_h_plt <- ggplot(Edu_Heroin_prop, aes(x=Education,y=Freq, fill=Heroin))+
 
 # Meth
 Edu_Meth_prop<-data.frame(prop.table(xtabs(data = main_df, ~Meth+Education),margin="Education"))
-Edu_Meth_prop
+
 
 edu_m_plt <- ggplot(Edu_Meth_prop, aes(x=Education,y=Freq, fill=Meth))+
   geom_col()+
@@ -292,7 +292,7 @@ meth_age_freq |>
   signif(digits = 3) |> 
   # Convert to a data frame
   data.frame() |> 
-  # Changing drive_end from 1 column to a column per way the drive ends
+  
   pivot_wider(names_from = "Meth",
               values_from = "Freq")
 
@@ -304,10 +304,6 @@ cramerV(meth_age_freq,
 
 ### Meth by Education
 ```{r Meth by Education}
-# ggplot(data = meth_used_df,
-#        mapping = aes(Meth, ..count..)) +
-#   geom_bar(aes(fill = Education),
-#            position = "dodge")
 
 meth_edu_freq <-
   xtabs(formula = ~ Education + Meth,
@@ -323,7 +319,7 @@ meth_edu_freq |>
   signif(digits = 3) |> 
   # Convert to a data frame
   data.frame() |> 
-  # Changing drive_end from 1 column to a column per way the drive ends
+
   pivot_wider(names_from = "Meth",
               values_from = "Freq")
 
@@ -403,16 +399,16 @@ CI_FA_test |>
   mutate(p_val = pchisq(stat, df = df_CI, lower = F))
 
 #Checking Sample Size:
-heroin_CI |> 
-  mutate(n_CI = sum(n)*CI_prop) |> 
-  arrange(n_CI)
+# heroin_CI |> 
+#   mutate(n_CI = sum(n)*CI_prop) |> 
+#   arrange(n_CI)
 
 ```
 With a P-value of nearly 0 we reject our null hypothesis that the three variables of Age, Heroin Use, and Education are all independent. We conclude that at least two of the variables are associated. This was to be expected as we saw that education level and heroin use were associated in the initial examination. One thing to note throughout these analyses is the fact that due to the smaller size of the data set and limited time and resources even when combining the higher age brackets we had a few combinations of higher aged groups who expected counts were under 5 which could negatively affect the tests. We wanted to maintain some amount of complexity/difference between the age and education groups and we also felt that due to limited time and the scope of the project it would be ok to maintain what we had and not spend more time manipulating the data and rerunning tests on the new data in hopes of being able to increase expected counts. 
 
 
 #### Joint Independence
-```{r Heroin Joint Independence}
+```{r Heroin Joint Independence, warning=FALSE}
 heroin_JI <- 
   heroin_used_df |> 
   mutate(edu_use = interaction(Education, Heroin, sep = ":"))
@@ -460,7 +456,6 @@ cond_ind_test_Her
 
 df<- (I*J*K) - 1 -((I + J -1)*K) - 1
 df
-
 # P-value:
 pchisq(q = cond_ind_test_Her,
        df = df,
@@ -476,11 +471,6 @@ With a test statistic of 66.9 and 13 degrees of freedom the resulting P-value is
 #make education variable binary so we can run homogenous test
 heroin_used_df <- mutate(heroin_used_df, college= ifelse(Education %in% c("Masters/Doctorate Degree","College Degree/Professional Certificate"), "Graduated", "Didn't Graduate"))
        
-#view odds ratios
-heroin_used_df |> 
-  group_by(Age) |> 
-  summarize(odds_ratio = oddsratio(table(college, Heroin), rev = "col")$measure[2,1])
-
 #run Breslow Day test for association between heroin use and age at different levels of education
 drug_data_BDtest <- 
   xtabs(formula = ~ Heroin + college + Age,
@@ -560,9 +550,9 @@ CI_FA_test |>
   mutate(p_val = pchisq(stat, df = df_CI, lower = F))
 
 #Checking Sample Size:
-meth_CI |> 
-  mutate(n_CI = sum(n)*CI_prop) |> 
-  arrange(n_CI)
+# meth_CI |> 
+#   mutate(n_CI = sum(n)*CI_prop) |> 
+#   arrange(n_CI)
 
 ```
 We calculated a p-value less than .05, so we reject the null and conclude in favor of the alternative hypothesis. We have strong evidence that at least 2 of our three variables (age, education, meth use) are associated. This is expected given our initial analysis of meth use and these variables and both tests resulting in a conclusion of association.
