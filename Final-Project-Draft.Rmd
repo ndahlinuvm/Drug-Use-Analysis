@@ -208,8 +208,7 @@ We will now examine the statistical relationships between Usage, Age, and Educat
 #reducing heroin usage to whether an individual has used or not
 heroin_used_df <- main_df |>
   select(-Meth) |>
-  mutate(Heroin=ifelse(Heroin=='Never','Never Used','Has Used')) |>
-  mutate(Age = ifelse(Age %in% c("65+","55-64"),"55+",Age))
+  mutate(Heroin=ifelse(Heroin=='Never','Never Used','Has Used'))
 
 #getting counts for each group of heroin by age
 heroin_age_freq <-
@@ -274,8 +273,7 @@ The initial graph for Education and Heroin however shows a bit more variation am
 ```{r Meth by Age}
 meth_used_df <- main_df |>
   select(-Heroin) |>
-  mutate(Meth=ifelse(Meth=='Never','Never Used','Has Used'))   |>
-  mutate(Age = ifelse(Age %in% c("65+","55-64"),"55+",Age)) 
+  mutate(Meth=ifelse(Meth=='Never','Never Used','Has Used')) 
 
 
 meth_age_freq <-
@@ -768,7 +766,7 @@ model_acc <- sum(pred_df$correct_pred)/length(pred_df$correct_pred)
 model_acc
 
 #accuracy predicting use
-#aggregate(correct_pred~use,data=pred_df,FUN = sum)
+# aggregate(correct_pred~use,data=pred_df,FUN = sum)
 correct_use_pred = 193
 total_num_use = sum(pred_df$use==1)
 correct_pred_acc = correct_use_pred/total_num_use
