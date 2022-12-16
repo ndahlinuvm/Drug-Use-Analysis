@@ -675,6 +675,7 @@ meth_CI |>
   labs(x = "Used Meth or Not",
        y = "Education",
        fill = "z-score for \nFA vs CI models")
+  #We calculated a p-value less than .05, so we reject the null and conclude in favor of the alternative hypothesis. We have strong evidence that at leat 2 of our three variables (age, education, meth use) are associated
 ```
 Based on
 
@@ -731,6 +732,7 @@ std_residuals(JI_vs_FA) |>
   labs(x = "Used Meth or Not",
        y = "Education",
        fill = "z-score for \nFA vs JI models")
+  #With a p-value less than .05, we reject the null and conclude that we have strong evidence in favor of the alternative. We have strong evidence that at least age or education is assoicated with meth use.
 ```
 
 ####Conditional Independence
