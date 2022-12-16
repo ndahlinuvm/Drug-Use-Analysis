@@ -19,8 +19,10 @@ pacman::p_load(socviz, tidyverse, rstatix, gridExtra, DescTools, gtExtras, rcomp
 drug_data <- read.csv("Drug_Consumption.csv")
 ```
 
+
 ## Introduction
 Originally this project was going to be a general analysis of drug use and how factors like age, education level, and personality traits can affect a person's chances of using or trying different drugs. Soon into the process however we discovered some discussions about the increase in violent and destructive crime in Burlington and the possibility that it could be linked to an  increase in Meth usage in the city which can lead to more expressive and chaotic outbreaks compared to drugs like Morphine or Heroin which normally have calming or sedative effects for the user. Due to this discovery we thought it would be interesting to focus on Meth as well as Heroin due to the ongoing Opioid epidemic in the region. In this project we will explore the relationships between these drugs and the features of Age and Education as well as looking at further complicated Logistic Regression models at the end with the addition of personality traits to explore those relationships a bit more.
+
 
 ## Data Description
 The data set we will be using is a collection of 1884 data points that track different attributes/features of individuals
@@ -34,26 +36,26 @@ head(drug_data,5)
 
 These are the descriptions for the more nondescript features: 
 
-Personality Traits:<br/>
-NScore - Neuroticism<br/>
-EScore - Extroversion<br/>
-OScore - Openness to Experience<br/>
-AScore - Agreeableness<br/>
-CScore - Conscientiousness<br/>
-Impulsiveness<br/>
-SS - Sensation Seeing<br/>
-<br/>
+Personality Traits:
+NScore - Neuroticism
+EScore - Extroversion
+OScore - Openness to Experience
+AScore - Agreeableness
+CScore - Conscientiousness
+Impulsiveness
+SS - Sensation Seeing
+
 The dataset we pulled had altered the personality trait scores for analysis. The scores have been normalized and specific values represent a Z-Score or Standard Deviation. We will be using the scores for Neuroticism, Extroversion, Openness to Experience, Agreeableness, Conscientiousness, and Impulsiveness later on towards the end of this project. 
 
-Drug Use Classifications:<br/>
-CL0 - Never used<br/>
-CL1 - Used over a decade ago<br/>
-CL2 - Used in last decade<br/>
-CL3 - Used in last year<br/>
-CL4 - Used in last month<br/>
-CL5 - Used in last week<br/>
-CL6 - Used in last day<br/>
-<br/>
+Drug Use Classifications:
+CL0 - Never used
+CL1 - Used over a decade ago
+CL2 - Used in last decade
+CL3 - Used in last year
+CL4 - Used in last month
+CL5 - Used in last week
+CL6 - Used in last day
+
 These classifications will later be reduced to whether an individual has used the drug at some point or never used the drug.
 
 ```{r removing features}
@@ -122,7 +124,9 @@ sjPlot::view_df(main_df,
 ## Data Summary
 We are interested in initially looking at the association between age and certain types of drug use as well as personality traits and drug use. From there we are interested at looking at the associations between these controlling for education level. These are some of our initial data summaries:
 
+
 ### Distribution of Ages and Education
+
 ```{r Dist of Age and Edu}
 #plot props
 age_prop <- main_df |>
@@ -151,7 +155,10 @@ edu_dist <- ggplot(edu_prop, aes(x=Education, y=prop))+
 grid.arrange(age_dist,edu_dist,nrow=1)
   
 ```
-<br/>The distribution of ages is heavily skewed right with the majority of the data consisting of those younger than 45. The amount of data in the youngest bracket is the largest with the amount tailing off as age brackets increase.
+
+The distribution of ages is heavily skewed right with the majority of the data consisting of those younger than 45. The amount of data in the youngest bracket is the largest with the amount tailing off as age brackets increase.
+
+
 
 ### Usage by Age
 
@@ -173,10 +180,12 @@ age_m_plt <- ggplot(Age_Meth_prop, aes(x=Age,y=Freq, fill=Meth))+
 
 grid.arrange(age_h_plt,age_m_plt,nrow=1)
 ```
-<br/>
+
 From an initial analysis of the relationship of Age with Usage there seem to be some interesting patterns. In regards to Heroin it looks there is a pretty even distribution across the age ranges under 55, however there is much more recent use, within the last year, among younger age brackets whereas the use among the higher brackets is largely within the last decade or over a decade ago. In regards to Meth we see a different story with there being a larger proportion of those within younger age brackets using or have used compared to those within the older age brackets.
 
+
 ### Usage by Education
+
 ```{r drugs by education}
 # Heroin
 Edu_Heroin_prop<-data.frame(prop.table(xtabs(data = main_df, ~Heroin+Education),margin="Education"))
@@ -197,13 +206,17 @@ edu_m_plt <- ggplot(Edu_Meth_prop, aes(x=Education,y=Freq, fill=Meth))+
 grid.arrange(edu_h_plt,edu_m_plt,nrow=1)
 
 ```
-<br/>
+
 From an initial analysis on Education and Usage we a bit more variation amongst the groups however there is a noticeable trend with the groups of those having not completed college or some form of higher education having a larger proportion of usage.
-<br/>
+
+
 ## Examining Initial Relationships (Tests for Two Variables)
+
 We will now examine the statistical relationships between Usage, Age, and Education starting with simple tests of association between the Age and Education in relation to the usage of these drugs.
-<br/>
+
+
 ### Heroin by Age
+
 ```{r Heroin by Age}
 #reducing heroin usage to whether an individual has used or not
 heroin_used_df <- main_df |>
@@ -236,9 +249,12 @@ cramerV(heroin_age_freq,
         ci = T,
         conf = 0.95)
 ```
+
 We can see from the initial graph there is not that much difference between the groups when we reduce the used or not. This is isn't unexpected from our initial exploration. Further the results of the Chi-square test returned a p-value of 0.78 which would lead us to failing to reject the null hypothesis of the test and conclude that there is not a significant association between Heroin usage and Age.
 
+
 ### Heroin by Education
+
 ```{r Heroin by Education}
 #getting counts for each group of heroin by education
 heroin_edu_freq <-
@@ -266,10 +282,12 @@ cramerV(heroin_edu_freq,
         ci = T,
         conf = 0.95)
 ```
+
 The initial graph for Education and Heroin however shows a bit more variation among the groups. When we run the Chi-square test we can see that the resulting p-value is very small which would lead us to rejecting the null hypothesis and concluding that there is a significant association between Education and Heroin usage.
 
 
 ### Meth by Age
+
 ```{r Meth by Age}
 meth_used_df <- main_df |>
   select(-Heroin) |>
@@ -300,7 +318,9 @@ cramerV(meth_age_freq,
         conf = 0.95)
 ```
 
+
 ### Meth by Education
+
 ```{r Meth by Education}
 
 meth_edu_freq <-
@@ -326,13 +346,20 @@ cramerV(meth_edu_freq,
         ci = T,
         conf = 0.95)
 ```
+
 Looking at the results for Meth we can see from the initial visualization that there definitely seems to be some noticeable variation between the groups when looking at both Age and Education. In both instances the p-values were small enough to lead us to rejecting the null hypothesis and concluding that there are significant associations between both of these variables and Meth usage.
 
+
 ## Examining More Complicated Relationships (Tests for Multiple Variables)
+
 After doing our initial analysis we will now dive a little deeper into the usage of these drugs and examine the more complicated relationships between the combination of Age and Education in relation to Usage instead of looking at them separately. We will be using X = Education, Y = Drug Use, and Z = Age for our analysis.
 
+
 ### Heroin
+
+
 #### Complete Independence
+
 ```{r Heroin Complete Independence}
 #Getting Counts and Expected Proportions
 heroin_sum <- 
@@ -402,10 +429,12 @@ CI_FA_test |>
 #   arrange(n_CI)
 
 ```
+
 With a P-value of nearly 0 we reject our null hypothesis that the three variables of Age, Heroin Use, and Education are all independent. We conclude that at least two of the variables are associated. This was to be expected as we saw that education level and heroin use were associated in the initial examination. One thing to note throughout these analyses is the fact that due to the smaller size of the data set and limited time and resources even when combining the higher age brackets we had a few combinations of higher aged groups who expected counts were under 5 which could negatively affect the tests. We wanted to maintain some amount of complexity/difference between the age and education groups and we also felt that due to limited time and the scope of the project it would be ok to maintain what we had and not spend more time manipulating the data and rerunning tests on the new data in hopes of being able to increase expected counts. 
 
 
 #### Joint Independence
+
 ```{r Heroin Joint Independence}
 heroin_JI <- 
   heroin_used_df |> 
@@ -423,10 +452,12 @@ expected_freq(JI_vs_FA) |>
   round(digits = 1)
 
 ```
+
 With an extremely small P-value we reject our null hypothesis, and conclude that there is strong evidence that either Education or Heroin or both differ between Age ranges. We need to include education level in our Age vs. Heroin use analysis. 
 
 
 #### Conditional Independence
+
 ```{r Cond Ind test Heroin}
 
 I <- n_distinct(heroin_used_df$Education)
@@ -460,15 +491,21 @@ pchisq(q = cond_ind_test_Her,
        lower = F)
        
 ```
+
 With a test statistic of 66.9 and 13 degrees of freedom the resulting P-value is (2.9*10^-9). With a P-value < .05 we reject our null hypothesis that the relationship between Heroin use and Education is conditional on Age range. We have strong evidence that the odds ratios for Heroin use by Education at different Age ranges are unequal to 1.
 
 
+#### Homogeneous Test
 
-#### Homogenous Test
-```{r Homogenous Test Heroin}
-#make education variable binary so we can run homogenous test
+```{r Homogeneous Test Heroin}
+#make education variable binary so we can run Homogeneous test
 heroin_used_df <- mutate(heroin_used_df, college= ifelse(Education %in% c("Masters/Doctorate Degree","College Degree/Professional Certificate"), "Graduated", "Didn't Graduate"))
-       
+
+#view odds ratios
+heroin_used_df |> 
+  group_by(Age) |> 
+  summarize(odds_ratio = epitools::oddsratio(table(college, Heroin), rev = "col")$measure[2,1])
+  
 #run Breslow Day test for association between heroin use and age at different levels of education
 drug_data_BDtest <- 
   xtabs(formula = ~ Heroin + college + Age,
@@ -479,10 +516,15 @@ drug_data_BDtest <-
 drug_data_BDtest
 
 ```
+
 We fail to reject the null and conclude we do not have strong evidence in favor of the alternative. We do not have strong evidence that the odds ratios for Heroin use by Education at different Age ranges are unequal. When we examine the odds ratios we can see they are all pretty similar expect for the outlier in the 55+ group although we believe this is due to the issues regarding the expected counts.
 
+
 ### Meth
+
+
 #### Complete Independence
+
 ```{r Meth Complete Independence}
 #Getting Counts and Expected Values:
 meth_sum <- 
@@ -553,9 +595,12 @@ CI_FA_test |>
 #   arrange(n_CI)
 
 ```
+
 We calculated a p-value less than .05, so we reject the null and conclude in favor of the alternative hypothesis. We have strong evidence that at least 2 of our three variables (age, education, meth use) are associated. This is expected given our initial analysis of meth use and these variables and both tests resulting in a conclusion of association.
 
+
 #### Joint Independence
+
 ```{r Joint Independence Meth}
 meth_JI <- 
   meth_used_df |> 
@@ -576,10 +621,12 @@ expected_freq(JI_vs_FA) |>
 
 
 ```
+
 With a p-value less than .05, we reject the null and conclude that we have strong evidence in favor of the alternative. We have strong evidence that Education or Meth use or both differ among age range.
 
 
 ####Conditional Independence
+
 ```{r conditional Ind Meth}
 
 I <- n_distinct(meth_used_df$Education)
@@ -611,18 +658,20 @@ pchisq(q = cond_ind_test_Meth,
        lower = F)
 
 ```
+
 With a test statistic of 86.09 and 13 degrees of freedom the resulting P-value is ~0. With a P-value < .05 we reject our null hypothesis that the relationship between Meth use and Education is conditional on Age range. We have strong evidence that the odds ratios for Meth use by Education at different Age ranges are unequal to 1.
 
 
-#### Homogenous Test
-```{r Homogenous test Meth}
-#make education variable binary so we can run homogenous test
+#### Homogeneous Test
+
+```{r Homogeneous test Meth}
+#make education variable binary so we can run homogeneous test
 meth_used_df <- mutate(meth_used_df, college= ifelse(Education %in% c("Masters/Doctorate Degree","College Degree/Professional Certificate"), "Graduated", "Didn't Graduate"))
        
 #view odds ratios
 meth_used_df |> 
   group_by(Age) |> 
-  summarize(odds_ratio = oddsratio(table(college, Meth), rev = "col")$measure[2,1])
+  summarize(odds_ratio = epitools::oddsratio(table(college, Meth), rev = "col")$measure[2,1])
 
 #run Breslow Day test for association between drug use and age at different levels of education
 drug_data_BDtest <- 
@@ -634,12 +683,14 @@ drug_data_BDtest <-
 drug_data_BDtest
 
 ```
+
 After running the Breslow Day Test, we computed a chi-squared value of 4.49 with df = 4, which resulted in a p-value of .343. We fail to reject the null and conclude we do not have strong evidence in favor of the alternative. We do not have strong evidence that the odds ratios for meth use by education at different levels of age are unequal. Again we some slight variation amongst odds ratios but the biggest gap coming from that 55+ group.
 
 
-
 ### Logistic Regression - Looking at Meth Use
+
 Moving on to the final analysis of the data, we wanted to further explore the relationships by using some logistic regression techniques.
+
 ```{r reclassify meth use}
 # 0 = Never used, 1 = Has used
 meth_log_reg <- meth_used_df |>
@@ -647,7 +698,9 @@ meth_log_reg <- meth_used_df |>
   select(-Meth)
 ```
 
+
 #### Looking at How Age and Education Affect Meth Use
+
 ```{r log model comparisons}
 add_model <- 
   glm(formula = use ~ Age + Education,
@@ -661,8 +714,8 @@ int_model <-
 
 fit_stats <- 
   bind_rows(
-    "add" = glance(add_model),
-    "int" = glance(int_model),
+    "add" = broom::glance(add_model),
+    "int" = broom::glance(int_model),
     .id = "model"
     )
 
@@ -696,11 +749,14 @@ AICc_int
 diff
 
 ```
+
 As we can see from the results of the model comparisons and tests, the interaction term is needed in the model. However when we look at the decrease in AIC it doesn't improve by much and further, due to the lower sample size we decided to also examine the AICc scores which still showed improvement however the decrease/difference in AICc was halved from roughly 4 down to 2. 
 
 
 #### Stepwise Model Selection
+
 We finally decided we would try stepwise selection on our altered dataset for Meth use and see which features would be selected as the best predictors for usage.
+
 ```{r stepwise model selection}
 min_model <- 
   glm(formula = use ~ 1,  # 1 means intercept only
@@ -772,7 +828,7 @@ total_num_use = sum(pred_df$use==1)
 correct_pred_acc = correct_use_pred/total_num_use
 correct_pred_acc
 
-glance(sugg_model)
+broom::glance(sugg_model)
 
 anova(add_model, int_model, sugg_model, 
       test = "LRT")
