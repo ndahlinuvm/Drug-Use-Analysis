@@ -448,7 +448,7 @@ heroin_CI |>
        y = "Education",
        fill = "z-score for \nFA vs CI models")
 ```
-With a P-value of nearly 0 is we reject our null hypothesis that the three variables of Age, Heroin Use, and Education are all independent. We conclude that at least two of the variables are associated. This was to be expected as we saw that education level and heroin use were associated in the initial examination.  
+With a P-value of nearly 0 we reject our null hypothesis that the three variables of Age, Heroin Use, and Education are all independent. We conclude that at least two of the variables are associated. This was to be expected as we saw that education level and heroin use were associated in the initial examination.  
 
 
 #### Joint Independence
