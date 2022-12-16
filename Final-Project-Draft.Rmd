@@ -3,15 +3,15 @@ title: "Stat235 Final Project"
 author: "Nils Dahlin, Connor Guyette, Jon Kramer"
 date: "10/20/2022"
 output:
-  pdf_document: default
-  word_document: default
   html_document: default
+  word_document: default
+  pdf_document: default
 ---
 # Stat235 Final Project: Drug Use Analysis
 Nils Dahlin, Connor Guyette, and Jon Kramer
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
 
 pacman::p_load(socviz, tidyverse, rstatix, gridExtra, DescTools, gtExtras, rcompanion, sjPlot)
 #tinytex::install_tinytex()
@@ -123,7 +123,7 @@ sjPlot::view_df(main_df,
 We are interested in initially looking at the association between age and certain types of drug use as well as personality traits and drug use. From there we are interested at looking at the associations between these controlling for education level. These are some of our initial data summaries:
 
 ### Distribution of Ages and Education
-```{r}
+```{r Dist of Age and Edu}
 #plot props
 age_prop <- main_df |>
   group_by(Age) |>
@@ -155,7 +155,7 @@ grid.arrange(age_dist,edu_dist,nrow=1)
 
 ### Usage by Age
 
-```{r heavier drug use by age, echo=FALSE}
+```{r drug use by age}
 #Heroin
 Age_Heroin_prop<-data.frame(prop.table(xtabs(data = main_df, ~Heroin+Age),margin="Age"))
 
@@ -406,7 +406,7 @@ With a P-value of nearly 0 we reject our null hypothesis that the three variable
 
 
 #### Joint Independence
-```{r Heroin Joint Independence, warning=FALSE}
+```{r Heroin Joint Independence}
 heroin_JI <- 
   heroin_used_df |> 
   mutate(edu_use = interaction(Education, Heroin, sep = ":"))
@@ -427,7 +427,7 @@ With an extremely small P-value we reject our null hypothesis, and conclude that
 
 
 #### Conditional Independence
-```{r Cond Ind test Heroin, warning=FALSE}
+```{r Cond Ind test Heroin}
 
 I <- n_distinct(heroin_used_df$Education)
 J <- n_distinct(heroin_used_df$Heroin)
@@ -465,7 +465,7 @@ With a test statistic of 66.9 and 13 degrees of freedom the resulting P-value is
 
 
 #### Homogenous Test
-```{r Homogenous Test}
+```{r Homogenous Test Heroin}
 #make education variable binary so we can run homogenous test
 heroin_used_df <- mutate(heroin_used_df, college= ifelse(Education %in% c("Masters/Doctorate Degree","College Degree/Professional Certificate"), "Graduated", "Didn't Graduate"))
        
@@ -556,7 +556,7 @@ CI_FA_test |>
 We calculated a p-value less than .05, so we reject the null and conclude in favor of the alternative hypothesis. We have strong evidence that at least 2 of our three variables (age, education, meth use) are associated. This is expected given our initial analysis of meth use and these variables and both tests resulting in a conclusion of association.
 
 #### Joint Independence
-```{r Joint Independence}
+```{r Joint Independence Meth}
 meth_JI <- 
   meth_used_df |> 
   mutate(edu_use = interaction(Education, Meth, sep = ":"))
@@ -580,7 +580,7 @@ With a p-value less than .05, we reject the null and conclude that we have stron
 
 
 ####Conditional Independence
-```{r conditional Ind Meth, warning=FALSE}
+```{r conditional Ind Meth}
 
 I <- n_distinct(meth_used_df$Education)
 J <- n_distinct(meth_used_df$Meth)
@@ -615,7 +615,7 @@ With a test statistic of 86.09 and 13 degrees of freedom the resulting P-value i
 
 
 #### Homogenous Test
-```{r Homogenous test}
+```{r Homogenous test Meth}
 #make education variable binary so we can run homogenous test
 meth_used_df <- mutate(meth_used_df, college= ifelse(Education %in% c("Masters/Doctorate Degree","College Degree/Professional Certificate"), "Graduated", "Didn't Graduate"))
        
@@ -648,7 +648,7 @@ meth_log_reg <- meth_used_df |>
 ```
 
 #### Looking at How Age and Education Affect Meth Use
-```{r}
+```{r log model comparisons}
 add_model <- 
   glm(formula = use ~ Age + Education,
       family = binomial,
@@ -737,7 +737,7 @@ c("forward"  = forward_glm$formula,
   "both"     = both_glm$formula)
 ```
 
-```{r}
+```{r analysis of suggested model}
 #suggested model
 sugg_model <- glm(formula = use ~ Country + Cscore + Education + Oscore + AScore + Nscore + 
     Impulsive + Escore,
